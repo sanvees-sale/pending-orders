@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orders Management Hub | Sanvee's</title>
     
-    <!-- Google Fonts: Inter -->
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Firebase SDK (Modular v10) -->
     <script type="module">
@@ -72,65 +72,90 @@
 
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
+            /* Color System - Ultra Vibrant & Professional */
+            --primary: #6366f1;
+            --primary-grad: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
             --primary-light: #eef2ff;
-            --primary-glow: rgba(79, 70, 229, 0.15);
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
+            --primary-glow: rgba(99, 102, 241, 0.25);
+            
+            --bg-color: #f0f4f8;
+            --bg-mesh: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                       radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.08) 0px, transparent 50%),
+                       radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
+                       radial-gradient(at 0% 100%, rgba(245, 158, 11, 0.05) 0px, transparent 50%);
+            
+            --card-bg: rgba(255, 255, 255, 0.95);
             --card-sub-bg: #f8fafc;
             --text-main: #0f172a;
             --text-muted: #64748b;
             --border: #e2e8f0;
+            --border-light: #f1f5f9;
             --border-focus: #818cf8;
             --input-bg: #ffffff;
             
+            /* Colorful Accents */
+            --cyan-grad: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
+            --emerald-grad: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            --amber-grad: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            --rose-grad: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%);
+            --violet-grad: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
+            
             --success: #10b981;
-            --success-hover: #059669;
-            --success-light: #d1fae5;
-            --success-text: #065f46;
+            --success-light: #ecfdf5;
+            --success-text: #047857;
+            --success-border: #a7f3d0;
             
             --warning: #f59e0b;
-            --warning-light: #fef3c7;
-            --warning-text: #92400e;
+            --warning-light: #fffbeb;
+            --warning-text: #b45309;
+            --warning-border: #fde68a;
             
             --danger: #ef4444;
-            --danger-hover: #dc2626;
-            --danger-light: #fee2e2;
-            --danger-text: #991b1b;
+            --danger-light: #fef2f2;
+            --danger-text: #b91c1c;
+            --danger-border: #fecaca;
             
-            --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
-            --shadow-lg: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
+            --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+            --shadow-sm: 0 2px 8px -2px rgba(15, 23, 42, 0.06);
+            --shadow-md: 0 12px 28px -6px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+            --shadow-lg: 0 24px 38px -8px rgba(15, 23, 42, 0.12), 0 8px 16px -4px rgba(15, 23, 42, 0.06);
         }
 
         [data-theme="dark"] {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --primary-light: #1e1b4b;
-            --primary-glow: rgba(99, 102, 241, 0.25);
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --card-sub-bg: #0f172a;
+            --primary: #818cf8;
+            --primary-grad: linear-gradient(135deg, #6366f1 0%, #c084fc 100%);
+            --primary-light: rgba(99, 102, 241, 0.15);
+            --primary-glow: rgba(129, 140, 248, 0.35);
+            
+            --bg-color: #0b1120;
+            --bg-mesh: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.18) 0px, transparent 50%),
+                       radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%),
+                       radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+            
+            --card-bg: rgba(15, 23, 42, 0.9);
+            --card-sub-bg: #1e293b;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border: #334155;
+            --border-light: #1e293b;
             --border-focus: #818cf8;
-            --input-bg: #0f172a;
+            --input-bg: #0b1120;
             
-            --success-light: #064e3b;
-            --success-text: #a7f3d0;
+            --success-light: rgba(16, 185, 129, 0.15);
+            --success-text: #34d399;
+            --success-border: rgba(16, 185, 129, 0.3);
             
-            --warning-light: #78350f;
-            --warning-text: #fde68a;
+            --warning-light: rgba(245, 158, 11, 0.15);
+            --warning-text: #fbbf24;
+            --warning-border: rgba(245, 158, 11, 0.3);
             
-            --danger-light: #7f1d1d;
-            --danger-text: #fecaca;
+            --danger-light: rgba(239, 68, 68, 0.15);
+            --danger-text: #f87171;
+            --danger-border: rgba(239, 68, 68, 0.3);
             
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 20px 30px -5px rgba(0, 0, 0, 0.6);
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 16px 32px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 28px 48px rgba(0, 0, 0, 0.7);
         }
 
         * {
@@ -138,28 +163,33 @@
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
             background-color: var(--bg-color);
+            background-image: var(--bg-mesh);
+            background-attachment: fixed;
             color: var(--text-main);
             margin: 0;
             padding: 24px 16px;
             -webkit-font-smoothing: antialiased;
             transition: background-color 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
         }
 
         .container {
-            max-width: 1180px;
+            max-width: 1240px;
             margin: 0 auto;
             background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             padding: 32px 36px;
-            border-radius: 24px;
-            box-shadow: var(--shadow-md);
+            border-radius: 28px;
+            box-shadow: var(--shadow-lg);
             border: 1px solid var(--border);
             position: relative;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
+            transition: all 0.3s ease;
         }
 
-        /* Top Navigation & App Bar */
+        /* Top Navigation Bar */
         .top-navbar {
             display: flex;
             align-items: center;
@@ -174,35 +204,60 @@
         .brand-header {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
-        .brand-icon {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, var(--primary), #818cf8);
-            border-radius: 12px;
+        .brand-icon-wrapper {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-grad);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 22px;
-            box-shadow: 0 4px 12px var(--primary-glow);
+            font-size: 24px;
+            box-shadow: 0 6px 16px var(--primary-glow);
+            transition: transform 0.3s ease;
+        }
+
+        .brand-icon-wrapper:hover {
+            transform: rotate(6deg) scale(1.05);
         }
 
         .brand-text h1 {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
             margin: 0;
             letter-spacing: -0.03em;
-            color: var(--text-main);
+            background: var(--primary-grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .brand-text p {
             margin: 2px 0 0 0;
             font-size: 13px;
             color: var(--text-muted);
-            font-weight: 500;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px #10b981;
+            animation: pulseDot 2s infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
         }
 
         .header-actions {
@@ -212,81 +267,96 @@
             flex-wrap: wrap;
         }
 
-        .date-control {
+        .date-badge {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             background: var(--card-sub-bg);
-            padding: 6px 14px;
-            border-radius: 12px;
+            padding: 8px 16px;
+            border-radius: 14px;
             border: 1px solid var(--border);
             box-shadow: var(--shadow-xs);
         }
 
-        .date-control label {
+        .date-badge label {
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
 
-        .date-control input[type="date"] {
+        .date-badge input[type="date"] {
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 6px 10px;
+            border-radius: 10px;
+            padding: 6px 12px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-main);
             background: var(--input-bg);
             outline: none;
             cursor: pointer;
             font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .date-badge input[type="date"]:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px var(--primary-glow);
         }
 
         .theme-toggle-btn {
             background: var(--card-sub-bg);
             border: 1px solid var(--border);
             color: var(--text-main);
-            padding: 8px 12px;
-            border-radius: 12px;
+            padding: 10px 16px;
+            border-radius: 14px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             transition: all 0.2s ease;
+            box-shadow: var(--shadow-xs);
         }
 
         .theme-toggle-btn:hover {
             border-color: var(--border-focus);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
         }
 
         /* Tabs Design */
         .tabs {
             display: flex;
             justify-content: center;
-            gap: 8px;
-            margin-bottom: 24px;
+            gap: 10px;
+            margin-bottom: 28px;
             background: var(--card-sub-bg);
             padding: 6px;
-            border-radius: 16px;
+            border-radius: 18px;
             width: fit-content;
             margin-left: auto;
             margin-right: auto;
             border: 1px solid var(--border);
+            box-shadow: var(--shadow-xs);
         }
 
         .tab-btn {
-            padding: 10px 26px;
+            padding: 12px 30px;
             background-color: transparent;
             color: var(--text-muted);
             border: none;
-            border-radius: 11px;
+            border-radius: 14px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 14px;
-            transition: all 0.2s ease;
+            font-family: inherit;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .tab-btn:hover {
@@ -294,15 +364,15 @@
         }
 
         .tab-btn.active {
-            background-color: var(--card-bg);
-            color: var(--primary);
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border);
+            background: var(--primary-grad);
+            color: white;
+            box-shadow: 0 4px 14px var(--primary-glow);
+            transform: scale(1.02);
         }
 
         .tab-content {
             display: none;
-            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .tab-content.active {
@@ -310,49 +380,69 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Stats Cards Dashboard */
+        /* Ultra Vibrant Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-            gap: 14px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
         }
 
         .stat-card {
             background: var(--card-sub-bg);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 16px 18px;
+            border-radius: 20px;
+            padding: 18px 22px;
             display: flex;
             align-items: center;
-            gap: 14px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--shadow-xs);
         }
 
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            border-radius: 4px 0 0 4px;
+        }
+
+        .stat-card.blue::before { background: var(--cyan-grad); }
+        .stat-card.amber::before { background: var(--amber-grad); }
+        .stat-card.emerald::before { background: var(--emerald-grad); }
+        .stat-card.rose::before { background: var(--rose-grad); }
+
         .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-sm);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--border-focus);
         }
 
         .stat-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 22px;
             flex-shrink: 0;
+            color: white;
         }
 
-        .stat-icon.blue { background: var(--primary-light); color: var(--primary); }
-        .stat-icon.yellow { background: var(--warning-light); color: var(--warning-text); }
-        .stat-icon.green { background: var(--success-light); color: var(--success-text); }
-        .stat-icon.red { background: var(--danger-light); color: var(--danger-text); }
+        .stat-icon.blue { background: var(--cyan-grad); box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3); }
+        .stat-icon.amber { background: var(--amber-grad); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+        .stat-icon.emerald { background: var(--emerald-grad); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .stat-icon.rose { background: var(--rose-grad); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
 
         .stat-info {
             display: flex;
@@ -362,21 +452,18 @@
 
         .stat-label {
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
         }
 
         .stat-value {
-            font-size: 19px;
+            font-size: 22px;
             font-weight: 800;
             color: var(--text-main);
-            margin-top: 2px;
-            letter-spacing: -0.02em;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            margin-top: 3px;
+            letter-spacing: -0.03em;
         }
 
         .stat-sub {
@@ -384,21 +471,34 @@
             font-weight: 600;
             color: var(--text-muted);
             margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        /* Form Controls */
+        /* Form Controls Card */
         .form-card {
             background: var(--card-sub-bg);
-            padding: 18px 20px;
-            border-radius: 16px;
+            padding: 22px 24px;
+            border-radius: 20px;
             border: 1px solid var(--border);
             margin-bottom: 24px;
+            box-shadow: var(--shadow-xs);
+            position: relative;
+        }
+
+        .form-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .form-card-title {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 12px;
+            font-size: 15px;
+            font-weight: 800;
             color: var(--text-main);
             display: flex;
             align-items: center;
@@ -412,15 +512,16 @@
         }
 
         input[type="text"], input[type="number"] {
-            padding: 11px 14px;
+            padding: 12px 16px;
             border: 1px solid var(--border);
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 14px;
             outline: none;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             background-color: var(--input-bg);
             font-family: inherit;
             color: var(--text-main);
+            box-shadow: var(--shadow-xs);
         }
 
         input[type="text"]:focus, input[type="number"]:focus {
@@ -430,46 +531,50 @@
 
         .input-order {
             flex: 2;
-            min-width: 200px;
+            min-width: 210px;
+            font-weight: 600;
         }
 
         .input-reason {
-            flex: 2.5;
-            min-width: 220px;
+            flex: 3;
+            min-width: 250px;
         }
 
         .input-amount {
             flex: 1.2;
-            min-width: 130px;
+            min-width: 140px;
+            font-weight: 700;
         }
 
         .btn {
-            padding: 11px 20px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 14px;
             font-family: inherit;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--shadow-xs);
         }
 
         .btn:active {
-            transform: scale(0.98);
+            transform: scale(0.97);
         }
 
         .add-btn {
-            background-color: var(--success);
+            background: var(--emerald-grad);
             color: white;
-            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
         }
 
         .add-btn:hover {
-            background-color: var(--success-hover);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+            transform: translateY(-1px);
         }
 
         /* Filter & Action Toolbar */
@@ -477,108 +582,131 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 18px;
+            gap: 14px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
 
         .search-box {
             position: relative;
             flex: 1;
-            min-width: 240px;
-            max-width: 380px;
+            min-width: 250px;
+            max-width: 400px;
         }
 
         .search-box input {
             width: 100%;
-            padding: 9px 12px 9px 34px;
-            border-radius: 10px;
+            padding: 10px 14px 10px 38px;
+            border-radius: 14px;
             font-size: 13px;
+            font-weight: 600;
         }
 
         .search-icon {
             position: absolute;
-            left: 10px;
+            left: 12px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-muted);
-            font-size: 14px;
+            font-size: 15px;
             pointer-events: none;
         }
 
         .filter-chips {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .chip {
-            padding: 6px 12px;
+            padding: 8px 14px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 700;
             border: 1px solid var(--border);
             background: var(--card-sub-bg);
             color: var(--text-muted);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         .chip:hover {
             border-color: var(--border-focus);
             color: var(--text-main);
+            transform: translateY(-1px);
         }
 
         .chip.active {
-            background: var(--primary);
+            background: var(--primary-grad);
             color: white;
-            border-color: var(--primary);
+            border-color: transparent;
+            box-shadow: 0 4px 12px var(--primary-glow);
         }
 
         .chip-count {
-            background: rgba(0, 0, 0, 0.1);
-            padding: 1px 6px;
-            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.12);
+            padding: 2px 8px;
+            border-radius: 12px;
             font-size: 11px;
+            font-weight: 800;
         }
 
         .chip.active .chip-count {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
         }
 
         .action-btns {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         .action-btn {
-            padding: 8px 14px;
-            border-radius: 10px;
+            padding: 10px 16px;
+            border-radius: 12px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
             background: var(--card-sub-bg);
             border: 1px solid var(--border);
             color: var(--text-main);
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-xs);
         }
 
-        .action-btn:hover {
-            background: var(--border);
+        .action-btn.export {
+            color: var(--success-text);
+            background: var(--success-light);
+            border-color: var(--success-border);
+        }
+
+        .action-btn.export:hover {
+            background: #d1fae5;
             transform: translateY(-1px);
         }
 
-        /* Table & Inline Inputs */
+        .action-btn.print {
+            color: var(--primary);
+            background: var(--primary-light);
+            border-color: var(--primary-glow);
+        }
+
+        .action-btn.print:hover {
+            background: #e0e7ff;
+            transform: translateY(-1px);
+        }
+
+        /* Table & Editable Rows */
         .table-container {
-            border-radius: 14px;
+            border-radius: 18px;
             border: 1px solid var(--border);
             overflow-x: auto;
             background: var(--card-bg);
@@ -592,41 +720,47 @@
         }
 
         th, td {
-            padding: 12px 14px;
+            padding: 14px 16px;
             text-align: center;
             vertical-align: middle;
-            font-size: 13px;
+            font-size: 13.5px;
             border-bottom: 1px solid var(--border);
         }
 
         th {
             background-color: var(--card-sub-bg);
             color: var(--text-muted);
-            font-weight: 700;
+            font-weight: 800;
             border-bottom: 2px solid var(--border);
-            letter-spacing: -0.01em;
+            letter-spacing: 0.03em;
             text-transform: uppercase;
             font-size: 12px;
         }
 
-        tr:last-child td {
-            border-bottom: none;
+        tbody tr {
+            transition: background-color 0.15s ease;
         }
 
         tbody tr:hover {
-            background-color: rgba(79, 70, 229, 0.02);
+            background-color: rgba(99, 102, 241, 0.03);
+        }
+
+        /* Cell Styling for Screen & Print */
+        .cell-content-box {
+            position: relative;
+            text-align: left;
         }
 
         .inline-edit-input {
             width: 100%;
-            padding: 6px 8px;
-            font-size: 13px;
+            padding: 8px 10px;
+            font-size: 13.5px;
             border: 1px solid transparent;
-            border-radius: 6px;
+            border-radius: 8px;
             background: transparent;
             color: var(--text-main);
             font-family: inherit;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             text-align: inherit;
         }
 
@@ -638,30 +772,32 @@
         .inline-edit-input:focus {
             background: var(--input-bg);
             border-color: var(--border-focus);
-            box-shadow: 0 0 0 2px var(--primary-glow);
+            box-shadow: 0 0 0 3px var(--primary-glow);
             outline: none;
         }
 
         .table-order-input {
             font-weight: 700;
-            text-align: left;
+            color: var(--text-main);
         }
 
         .table-reason-input {
-            text-align: left;
+            font-weight: 500;
+            color: var(--text-main);
         }
 
         .table-amount-input {
-            width: 95px;
-            padding: 6px 8px;
+            width: 105px;
+            padding: 8px 10px;
             text-align: center;
-            font-size: 13px;
-            font-weight: 700;
+            font-size: 14px;
+            font-weight: 800;
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 10px;
             outline: none;
             background: var(--input-bg);
             color: var(--text-main);
+            transition: all 0.2s ease;
         }
 
         .table-amount-input:focus {
@@ -669,73 +805,83 @@
             box-shadow: 0 0 0 3px var(--primary-glow);
         }
 
+        /* Print-only Text Container (Hidden on Screen) */
+        .print-cell-text {
+            display: none;
+        }
+
         /* Status Dropdown Design */
         .status-select {
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 700;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            font-weight: 800;
             border: 1px solid transparent;
             cursor: pointer;
             outline: none;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             font-family: inherit;
+            box-shadow: var(--shadow-xs);
         }
 
         .status-pending {
             background-color: var(--warning-light);
             color: var(--warning-text);
+            border-color: var(--warning-border);
         }
 
         .status-sent {
             background-color: var(--success-light);
             color: var(--success-text);
+            border-color: var(--success-border);
         }
 
         .status-cancelled {
             background-color: var(--danger-light);
             color: var(--danger-text);
+            border-color: var(--danger-border);
         }
 
         .delete-btn {
             background: var(--danger-light);
-            border: none;
+            border: 1px solid var(--danger-border);
             color: var(--danger);
             cursor: pointer;
             font-size: 13px;
-            width: 28px;
-            height: 28px;
-            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
             margin-left: 6px;
-            font-weight: 700;
+            font-weight: 800;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .delete-btn:hover {
             background: var(--danger);
             color: white;
+            transform: scale(1.08);
         }
 
         /* Total Row Styling */
         .total-row td {
-            font-weight: 700;
+            font-weight: 800;
             background-color: var(--card-sub-bg);
             border-top: 2px solid var(--border);
             color: var(--text-main);
-            font-size: 13px;
+            font-size: 14px;
         }
 
         /* Toast System */
         .toast-container {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
+            bottom: 28px;
+            right: 28px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             z-index: 10000;
             pointer-events: none;
         }
@@ -744,29 +890,30 @@
             pointer-events: auto;
             background: var(--card-bg);
             color: var(--text-main);
-            padding: 12px 18px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-size: 13.5px;
+            font-weight: 700;
             box-shadow: var(--shadow-lg);
             border: 1px solid var(--border);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            max-width: 320px;
+            max-width: 360px;
+            backdrop-filter: blur(12px);
         }
 
-        .toast.success { border-left: 4px solid var(--success); }
-        .toast.error { border-left: 4px solid var(--danger); }
-        .toast.info { border-left: 4px solid var(--primary); }
+        .toast.success { border-left: 5px solid var(--success); }
+        .toast.error { border-left: 5px solid var(--danger); }
+        .toast.info { border-left: 5px solid var(--primary); }
 
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
 
-        /* Confirmation Custom Modal Styling */
+        /* Custom Modal */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -774,8 +921,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px);
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(6px);
             z-index: 9999;
             justify-content: center;
             align-items: center;
@@ -783,12 +930,12 @@
 
         .modal-box {
             background: var(--card-bg);
-            padding: 28px;
-            border-radius: 18px;
+            padding: 32px;
+            border-radius: 22px;
             box-shadow: var(--shadow-lg);
             border: 1px solid var(--border);
             text-align: center;
-            max-width: 380px;
+            max-width: 400px;
             width: 90%;
             animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -800,14 +947,14 @@
 
         .modal-box h3 {
             margin: 0 0 8px 0;
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 20px;
+            font-weight: 800;
             color: var(--text-main);
         }
 
         .modal-box p {
             margin: 0 0 20px 0;
-            font-size: 13px;
+            font-size: 13.5px;
             color: var(--text-muted);
             line-height: 1.5;
         }
@@ -815,27 +962,28 @@
         .modal-order-preview {
             background: var(--card-sub-bg);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 10px;
-            font-size: 12px;
-            margin-bottom: 20px;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 13px;
+            margin-bottom: 24px;
             text-align: left;
+            line-height: 1.6;
         }
 
         .modal-actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             justify-content: center;
         }
 
         .modal-btn {
-            padding: 9px 18px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 13.5px;
+            font-weight: 700;
             cursor: pointer;
             border: none;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
             font-family: inherit;
         }
 
@@ -850,79 +998,261 @@
         }
 
         .modal-btn-confirm {
-            background-color: var(--danger);
+            background: var(--rose-grad);
             color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
 
         .modal-btn-confirm:hover {
-            background-color: var(--danger-hover);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.45);
         }
 
-        /* Print Settings */
+        /* ========================================================================= */
+        /* PRINT SPECIFIC STYLES - ULTRA VIBRANT, COLOURFUL & FLAWLESS MULTI-LINE   */
+        /* ========================================================================= */
+        .print-header-block {
+            display: none;
+        }
+
         @media print {
-            body {
-                background: white !important;
-                color: black !important;
-                padding: 0;
+            @page {
+                margin: 12mm 10mm;
+                size: portrait;
             }
-            .container {
-                box-shadow: none !important;
+
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
+            html, body {
+                background: #ffffff !important;
                 padding: 0 !important;
-                max-width: 100% !important;
-                border: none !important;
+                margin: 0 !important;
+                font-size: 11pt;
+                font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
-            .top-navbar, .tabs, .form-card, .toolbar, .delete-btn, .modal-overlay, .toast-container {
+
+            .container {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                background: #ffffff !important;
+            }
+
+            /* Hide all screen-only UI */
+            .top-navbar, .tabs, .stats-grid, .form-card, .toolbar, .delete-btn, .modal-overlay, .toast-container, .screen-only-input {
                 display: none !important;
             }
-            
-            .print-date-title {
+
+            /* Colorful Vibrant Print Header Banner */
+            .print-header-block {
                 display: block !important;
-                text-align: center;
-                font-size: 16px;
-                font-weight: 700;
-                color: #000;
-                margin-bottom: 20px;
+                background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+                color: #ffffff !important;
+                padding: 16px 20px !important;
+                border-radius: 12px !important;
+                margin-bottom: 16px !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
 
-            .inline-edit-input {
-                border: none !important;
-                background: transparent !important;
-                padding: 0 !important;
-            }
-
-            .table-amount-input {
-                border: none !important;
-                background: transparent !important;
-                appearance: none !important;
-                padding: 0 !important;
-                font-family: inherit;
-                font-size: 13px;
-                text-align: center;
-            }
-
-            .status-select {
-                border: none !important;
-                background: transparent !important;
-                appearance: none !important;
-                padding: 0 !important;
-                font-weight: 700;
-                text-align-last: center;
-            }
-            table {
-                border-collapse: collapse;
-                width: 100%;
-            }
-            th, td {
-                border: 1px solid #cbd5e1 !important;
-                padding: 8px 10px;
+            .print-brand-title {
+                font-size: 18pt !important;
+                font-weight: 800 !important;
+                margin: 0 0 4px 0 !important;
                 text-align: center !important;
-                vertical-align: middle !important;
-                color: black !important;
+                color: #ffffff !important;
+                letter-spacing: -0.02em !important;
             }
-        }
 
-        .print-date-title {
-            display: none;
+            .print-subtitle {
+                font-size: 10.5pt !important;
+                font-weight: 600 !important;
+                text-align: center !important;
+                color: rgba(255, 255, 255, 0.95) !important;
+                margin: 0 !important;
+            }
+
+            /* Colorful Summary Metric Cards in Print */
+            .print-summary-boxes {
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 10px !important;
+                margin: 14px 0 !important;
+                background: transparent !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+
+            .print-summary-box {
+                padding: 10px 12px !important;
+                border-radius: 10px !important;
+                text-align: center !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .print-summary-box.blue {
+                background: #eef2ff !important;
+                border: 1px solid #c7d2fe !important;
+                color: #3730a3 !important;
+            }
+
+            .print-summary-box.amber {
+                background: #fffbeb !important;
+                border: 1px solid #fde68a !important;
+                color: #b45309 !important;
+            }
+
+            .print-summary-box.emerald {
+                background: #ecfdf5 !important;
+                border: 1px solid #a7f3d0 !important;
+                color: #047857 !important;
+            }
+
+            .print-summary-box.rose {
+                background: #fef2f2 !important;
+                border: 1px solid #fecaca !important;
+                color: #b91c1c !important;
+            }
+
+            .print-summary-box strong {
+                display: block !important;
+                font-size: 8pt !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.05em !important;
+                margin-bottom: 2px !important;
+            }
+
+            .print-summary-box span {
+                font-size: 13pt !important;
+                font-weight: 800 !important;
+            }
+
+            /* Table Layout for Print */
+            .table-container {
+                border: 1px solid #cbd5e1 !important;
+                border-radius: 10px !important;
+                box-shadow: none !important;
+                overflow: visible !important;
+            }
+
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+
+            th, td {
+                border: 1px solid #e2e8f0 !important;
+                padding: 9px 12px !important;
+                font-size: 9.5pt !important;
+                vertical-align: middle !important;
+            }
+
+            th {
+                background: #f1f5f9 !important;
+                color: #334155 !important;
+                font-weight: 800 !important;
+                text-align: center !important;
+                border-bottom: 2px solid #cbd5e1 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Display FULL TEXT for Print with Multi-line Wrapping */
+            .print-cell-text {
+                display: block !important;
+                white-space: pre-wrap !important;
+                word-break: break-word !important;
+                line-height: 1.45 !important;
+                font-size: 9.5pt !important;
+                text-align: left !important;
+                color: #0f172a !important;
+            }
+
+            .print-cell-text.center {
+                text-align: center !important;
+            }
+
+            .print-cell-text.bold {
+                font-weight: 700 !important;
+                color: #1e1b4b !important;
+            }
+
+            .print-cell-text.amount {
+                font-weight: 800 !important;
+                color: #0f172a !important;
+                font-size: 10pt !important;
+            }
+
+            /* Colorful Status Badges in Print */
+            .print-status-badge {
+                display: inline-block !important;
+                padding: 4px 9px !important;
+                font-weight: 800 !important;
+                font-size: 8.5pt !important;
+                border-radius: 6px !important;
+                text-transform: uppercase !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                white-space: nowrap !important;
+            }
+
+            .print-status-badge.status-pending {
+                background: #fef3c7 !important;
+                color: #b45309 !important;
+                border: 1px solid #fde68a !important;
+            }
+
+            .print-status-badge.status-sent {
+                background: #d1fae5 !important;
+                color: #047857 !important;
+                border: 1px solid #a7f3d0 !important;
+            }
+
+            .print-status-badge.status-cancelled {
+                background: #fee2e2 !important;
+                color: #b91c1c !important;
+                border: 1px solid #fecaca !important;
+            }
+
+            /* Colorful Total Rows in Print */
+            .total-row td {
+                background: #f8fafc !important;
+                font-weight: 800 !important;
+                border-top: 2px solid #cbd5e1 !important;
+                font-size: 10pt !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .print-pending-total {
+                color: #b45309 !important;
+                font-weight: 800 !important;
+            }
+
+            .print-sent-total {
+                color: #047857 !important;
+                font-weight: 800 !important;
+            }
+
+            .print-footer {
+                display: flex !important;
+                justify-content: space-between !important;
+                margin-top: 20px !important;
+                padding-top: 10px !important;
+                font-size: 8.5pt !important;
+                color: #64748b !important;
+                border-top: 1px dashed #cbd5e1 !important;
+            }
         }
     </style>
 </head>
@@ -931,32 +1261,19 @@
 <!-- Toast Notification Container -->
 <div id="toastContainer" class="toast-container"></div>
 
-<!-- Quick Reasons Datalist -->
-<datalist id="commonReasons">
-    <option value="Size stock out">
-    <option value="Color stock out">
-    <option value="Advance payment missing">
-    <option value="Customer unreachable / Phone switched off">
-    <option value="Custom stitching / Alteration needed">
-    <option value="Waiting for customer confirmation">
-    <option value="Address incomplete / Verification pending">
-    <option value="Courier delay / Delivery issue">
-    <option value="Pre-order item / Under production">
-</datalist>
-
 <div class="container">
     <!-- Top Navigation Bar -->
     <div class="top-navbar">
         <div class="brand-header">
-            <div class="brand-icon">📦</div>
+            <div class="brand-icon-wrapper">📦</div>
             <div class="brand-text">
                 <h1>Orders Management Hub</h1>
-                <p>Pending Orders & Status Tracker</p>
+                <p><span class="live-dot"></span> Live Cloud Sync Active</p>
             </div>
         </div>
 
         <div class="header-actions">
-            <div class="date-control">
+            <div class="date-badge">
                 <label for="checkDateInput">📅 Date:</label>
                 <input type="date" id="checkDateInput" onchange="onCheckingDateChange()">
             </div>
@@ -968,15 +1285,43 @@
 
     <!-- Tab Buttons -->
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('tony')">Sanvee's by Tony</button>
-        <button class="tab-btn" onclick="switchTab('sanvees')">Sanvee's</button>
+        <button class="tab-btn active" onclick="switchTab('tony')">
+            <span>✨</span> Sanvee's by Tony
+        </button>
+        <button class="tab-btn" onclick="switchTab('sanvees')">
+            <span>👗</span> Sanvee's
+        </button>
     </div>
 
     <!-- TAB 1: Sanvee's by Tony -->
     <div id="tab-tony" class="tab-content active">
-        <!-- Stats Cards -->
+        <!-- Print-only Colorful Header -->
+        <div class="print-header-block" id="printHeaderTony">
+            <h1 class="print-brand-title">Sanvee's by Tony</h1>
+            <p class="print-subtitle" id="printSubtitleTony">Pending Orders Statement</p>
+            <div class="print-summary-boxes">
+                <div class="print-summary-box blue">
+                    <strong>Total Orders</strong>
+                    <span id="printTonyTotalCount">0</span>
+                </div>
+                <div class="print-summary-box amber">
+                    <strong>Pending Orders</strong>
+                    <span id="printTonyPendingCount">0</span>
+                </div>
+                <div class="print-summary-box amber">
+                    <strong>Pending Amount</strong>
+                    <span id="printTonyPendingAmt">৳0</span>
+                </div>
+                <div class="print-summary-box emerald">
+                    <strong>Sent Amount</strong>
+                    <span id="printTonySentAmt">৳0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ultra Vibrant Stats Grid -->
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card blue">
                 <div class="stat-icon blue">📋</div>
                 <div class="stat-info">
                     <span class="stat-label">Total Orders</span>
@@ -984,24 +1329,24 @@
                     <span class="stat-sub">For this date</span>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon yellow">⏳</div>
+            <div class="stat-card amber">
+                <div class="stat-icon amber">⏳</div>
                 <div class="stat-info">
                     <span class="stat-label">Pending</span>
                     <span class="stat-value" id="tonyStatPendingAmt">৳0</span>
                     <span class="stat-sub" id="tonyStatPendingCount">0 orders</span>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon green">🚚</div>
+            <div class="stat-card emerald">
+                <div class="stat-icon emerald">🚚</div>
                 <div class="stat-info">
                     <span class="stat-label">Parcel Sent</span>
                     <span class="stat-value" id="tonyStatSentAmt">৳0</span>
                     <span class="stat-sub" id="tonyStatSentCount">0 orders</span>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon red">❌</div>
+            <div class="stat-card rose">
+                <div class="stat-icon rose">❌</div>
                 <div class="stat-info">
                     <span class="stat-label">Cancelled</span>
                     <span class="stat-value" id="tonyStatCancelledCount">0</span>
@@ -1010,16 +1355,16 @@
             </div>
         </div>
 
-        <div class="print-date-title" id="printDateTitleTony"></div>
-
         <!-- Add Order Form -->
         <div class="form-card">
-            <div class="form-card-title">➕ Add New Pending Order</div>
+            <div class="form-card-header">
+                <div class="form-card-title">➕ Add New Pending Order</div>
+            </div>
             <div class="form-group">
                 <input type="text" id="tonyOrderNo" class="input-order" placeholder="Order No / Customer Name" onkeypress="handleFormEnter(event, 'tony')">
-                <input type="text" id="tonyReason" class="input-reason" list="commonReasons" placeholder="Pending Reason (e.g. Size stock out)" onkeypress="handleFormEnter(event, 'tony')">
+                <input type="text" id="tonyReason" class="input-reason" placeholder="Pending Reason" onkeypress="handleFormEnter(event, 'tony')">
                 <input type="number" id="tonyAmount" class="input-amount" placeholder="Amount (BDT)" onkeypress="handleFormEnter(event, 'tony')">
-                <button class="btn add-btn" onclick="addOrder('tony')">Add Order</button>
+                <button class="btn add-btn" onclick="addOrder('tony')">➕ Add Order</button>
             </div>
         </div>
 
@@ -1032,14 +1377,14 @@
 
             <div class="filter-chips">
                 <button class="chip active" onclick="setStatusFilter('tony', 'all')" id="tonyFilterAll">All <span class="chip-count" id="tonyChipAll">0</span></button>
-                <button class="chip" onclick="setStatusFilter('tony', 'pending')" id="tonyFilterPending">Pending <span class="chip-count" id="tonyChipPending">0</span></button>
-                <button class="chip" onclick="setStatusFilter('tony', 'sent')" id="tonyFilterSent">Sent <span class="chip-count" id="tonyChipSent">0</span></button>
-                <button class="chip" onclick="setStatusFilter('tony', 'cancelled')" id="tonyFilterCancelled">Cancelled <span class="chip-count" id="tonyChipCancelled">0</span></button>
+                <button class="chip" onclick="setStatusFilter('tony', 'pending')" id="tonyFilterPending">⏳ Pending <span class="chip-count" id="tonyChipPending">0</span></button>
+                <button class="chip" onclick="setStatusFilter('tony', 'sent')" id="tonyFilterSent">🚚 Sent <span class="chip-count" id="tonyChipSent">0</span></button>
+                <button class="chip" onclick="setStatusFilter('tony', 'cancelled')" id="tonyFilterCancelled">❌ Cancelled <span class="chip-count" id="tonyChipCancelled">0</span></button>
             </div>
 
             <div class="action-btns">
-                <button class="action-btn" onclick="exportToCSV('tony')" title="Export to Excel CSV">📊 Export Excel</button>
-                <button class="action-btn" onclick="preparePrint('tony')" title="Print / PDF">🖨️ Print</button>
+                <button class="action-btn export" onclick="exportToCSV('tony')" title="Export to Excel CSV">📊 Export Excel</button>
+                <button class="action-btn print" onclick="preparePrint('tony')" title="Print / PDF">🖨️ Print Report</button>
             </div>
         </div>
 
@@ -1049,8 +1394,8 @@
                 <thead>
                     <tr>
                         <th width="5%">#</th>
-                        <th width="28%">Order No / Customer</th>
-                        <th width="35%">Pending Reason</th>
+                        <th width="26%">Order No / Customer</th>
+                        <th width="37%">Pending Reason</th>
                         <th width="14%">Amount (BDT)</th>
                         <th width="18%">Status / Action</th>
                     </tr>
@@ -1058,13 +1403,43 @@
                 <tbody id="tonyTableBody"></tbody>
             </table>
         </div>
+
+        <!-- Print Footer -->
+        <div class="print-footer">
+            <span>Generated from Sanvee's Orders Hub</span>
+            <span id="printFooterTimestampTony"></span>
+        </div>
     </div>
 
     <!-- TAB 2: Sanvee's -->
     <div id="tab-sanvees" class="tab-content">
-        <!-- Stats Cards -->
+        <!-- Print-only Colorful Header -->
+        <div class="print-header-block" id="printHeaderSanvees">
+            <h1 class="print-brand-title">Sanvee's</h1>
+            <p class="print-subtitle" id="printSubtitleSanvees">Pending Orders Statement</p>
+            <div class="print-summary-boxes">
+                <div class="print-summary-box blue">
+                    <strong>Total Orders</strong>
+                    <span id="printSanveesTotalCount">0</span>
+                </div>
+                <div class="print-summary-box amber">
+                    <strong>Pending Orders</strong>
+                    <span id="printSanveesPendingCount">0</span>
+                </div>
+                <div class="print-summary-box amber">
+                    <strong>Pending Amount</strong>
+                    <span id="printSanveesPendingAmt">৳0</span>
+                </div>
+                <div class="print-summary-box emerald">
+                    <strong>Sent Amount</strong>
+                    <span id="printSanveesSentAmt">৳0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ultra Vibrant Stats Grid -->
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card blue">
                 <div class="stat-icon blue">📋</div>
                 <div class="stat-info">
                     <span class="stat-label">Total Orders</span>
@@ -1072,24 +1447,24 @@
                     <span class="stat-sub">For this date</span>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon yellow">⏳</div>
+            <div class="stat-card amber">
+                <div class="stat-icon amber">⏳</div>
                 <div class="stat-info">
                     <span class="stat-label">Pending</span>
                     <span class="stat-value" id="sanveesStatPendingAmt">৳0</span>
                     <span class="stat-sub" id="sanveesStatPendingCount">0 orders</span>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon green">🚚</div>
+            <div class="stat-card emerald">
+                <div class="stat-icon emerald">🚚</div>
                 <div class="stat-info">
                     <span class="stat-label">Parcel Sent</span>
                     <span class="stat-value" id="sanveesStatSentAmt">৳0</span>
                     <span class="stat-sub" id="sanveesStatSentCount">0 orders</span>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon red">❌</div>
+            <div class="stat-card rose">
+                <div class="stat-icon rose">❌</div>
                 <div class="stat-info">
                     <span class="stat-label">Cancelled</span>
                     <span class="stat-value" id="sanveesStatCancelledCount">0</span>
@@ -1098,16 +1473,16 @@
             </div>
         </div>
 
-        <div class="print-date-title" id="printDateTitleSanvees"></div>
-
         <!-- Add Order Form -->
         <div class="form-card">
-            <div class="form-card-title">➕ Add New Pending Order</div>
+            <div class="form-card-header">
+                <div class="form-card-title">➕ Add New Pending Order</div>
+            </div>
             <div class="form-group">
                 <input type="text" id="sanveesOrderNo" class="input-order" placeholder="Order No / Customer Name" onkeypress="handleFormEnter(event, 'sanvees')">
-                <input type="text" id="sanveesReason" class="input-reason" list="commonReasons" placeholder="Pending Reason (e.g. Advance missing)" onkeypress="handleFormEnter(event, 'sanvees')">
+                <input type="text" id="sanveesReason" class="input-reason" placeholder="Pending Reason" onkeypress="handleFormEnter(event, 'sanvees')">
                 <input type="number" id="sanveesAmount" class="input-amount" placeholder="Amount (BDT)" onkeypress="handleFormEnter(event, 'sanvees')">
-                <button class="btn add-btn" onclick="addOrder('sanvees')">Add Order</button>
+                <button class="btn add-btn" onclick="addOrder('sanvees')">➕ Add Order</button>
             </div>
         </div>
 
@@ -1120,14 +1495,14 @@
 
             <div class="filter-chips">
                 <button class="chip active" onclick="setStatusFilter('sanvees', 'all')" id="sanveesFilterAll">All <span class="chip-count" id="sanveesChipAll">0</span></button>
-                <button class="chip" onclick="setStatusFilter('sanvees', 'pending')" id="sanveesFilterPending">Pending <span class="chip-count" id="sanveesChipPending">0</span></button>
-                <button class="chip" onclick="setStatusFilter('sanvees', 'sent')" id="sanveesFilterSent">Sent <span class="chip-count" id="sanveesChipSent">0</span></button>
-                <button class="chip" onclick="setStatusFilter('sanvees', 'cancelled')" id="sanveesFilterCancelled">Cancelled <span class="chip-count" id="sanveesChipCancelled">0</span></button>
+                <button class="chip" onclick="setStatusFilter('sanvees', 'pending')" id="sanveesFilterPending">⏳ Pending <span class="chip-count" id="sanveesChipPending">0</span></button>
+                <button class="chip" onclick="setStatusFilter('sanvees', 'sent')" id="sanveesFilterSent">🚚 Sent <span class="chip-count" id="sanveesChipSent">0</span></button>
+                <button class="chip" onclick="setStatusFilter('sanvees', 'cancelled')" id="sanveesFilterCancelled">❌ Cancelled <span class="chip-count" id="sanveesChipCancelled">0</span></button>
             </div>
 
             <div class="action-btns">
-                <button class="action-btn" onclick="exportToCSV('sanvees')" title="Export to Excel CSV">📊 Export Excel</button>
-                <button class="action-btn" onclick="preparePrint('sanvees')" title="Print / PDF">🖨️ Print</button>
+                <button class="action-btn export" onclick="exportToCSV('sanvees')" title="Export to Excel CSV">📊 Export Excel</button>
+                <button class="action-btn print" onclick="preparePrint('sanvees')" title="Print / PDF">🖨️ Print Report</button>
             </div>
         </div>
 
@@ -1137,14 +1512,20 @@
                 <thead>
                     <tr>
                         <th width="5%">#</th>
-                        <th width="28%">Order No / Customer</th>
-                        <th width="35%">Pending Reason</th>
+                        <th width="26%">Order No / Customer</th>
+                        <th width="37%">Pending Reason</th>
                         <th width="14%">Amount (BDT)</th>
                         <th width="18%">Status / Action</th>
                     </tr>
                 </thead>
                 <tbody id="sanveesTableBody"></tbody>
             </table>
+        </div>
+
+        <!-- Print Footer -->
+        <div class="print-footer">
+            <span>Generated from Sanvee's Orders Hub</span>
+            <span id="printFooterTimestampSanvees"></span>
         </div>
     </div>
 </div>
@@ -1175,7 +1556,6 @@
     };
 
     document.addEventListener("DOMContentLoaded", async () => {
-        // Theme initialization
         initTheme();
 
         const todayStr = new Date().toISOString().split('T')[0];
@@ -1384,7 +1764,7 @@
             }
         });
 
-        // Update Stat Cards
+        // Update Screen Stat Cards
         document.getElementById(type + 'StatTotal').innerText = totalCount;
         document.getElementById(type + 'StatPendingAmt').innerText = '৳' + pendingAmt.toLocaleString();
         document.getElementById(type + 'StatPendingCount').innerText = `${pendingCount} orders`;
@@ -1400,6 +1780,18 @@
         document.getElementById(type + 'ChipPending').innerText = pendingCount;
         document.getElementById(type + 'ChipSent').innerText = sentCount;
         document.getElementById(type + 'ChipCancelled').innerText = cancelledCount;
+
+        // Update Print Header Metrics
+        let capType = type === 'tony' ? 'Tony' : 'Sanvees';
+        let printTotalEl = document.getElementById(`print${capType}TotalCount`);
+        let printPendingCountEl = document.getElementById(`print${capType}PendingCount`);
+        let printPendingAmtEl = document.getElementById(`print${capType}PendingAmt`);
+        let printSentAmtEl = document.getElementById(`print${capType}SentAmt`);
+
+        if (printTotalEl) printTotalEl.innerText = totalCount;
+        if (printPendingCountEl) printPendingCountEl.innerText = `${pendingCount} orders`;
+        if (printPendingAmtEl) printPendingAmtEl.innerText = `৳${pendingAmt.toLocaleString()}`;
+        if (printSentAmtEl) printSentAmtEl.innerText = `৳${sentAmt.toLocaleString()}`;
     }
 
     function setStatusFilter(type, status) {
@@ -1451,7 +1843,7 @@
             });
 
         if (filteredOrders.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 36px 16px;">No matching orders found.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 40px 16px; font-weight: 600;">No matching orders found.</td></tr>`;
             return;
         }
 
@@ -1469,38 +1861,60 @@
             }
 
             let statusClass = 'status-' + currentStatus;
+            let statusBadgeText = currentStatus === 'pending' ? '⏳ Pending' : (currentStatus === 'sent' ? '🚚 Parcel Sent' : '❌ Cancelled');
+
             let row = `<tr>
                 <td><b>${displayIndex + 1}</b></td>
+                
+                <!-- Order No: Screen Input + Print Full Text -->
                 <td>
-                    <input type="text" class="inline-edit-input table-order-input" value="${escapeHtml(order.orderNo || '')}" onchange="updateOrderFieldInline('${type}', ${originalIndex}, 'orderNo', this.value)" title="Click to edit Order Number">
+                    <div class="cell-content-box">
+                        <input type="text" class="inline-edit-input table-order-input screen-only-input" value="${escapeHtml(order.orderNo || '')}" onchange="updateOrderFieldInline('${type}', ${originalIndex}, 'orderNo', this.value)" title="Click to edit Order Number">
+                        <div class="print-cell-text bold">${escapeHtml(order.orderNo || '')}</div>
+                    </div>
                 </td>
+                
+                <!-- Pending Reason: Screen Input + Print Multi-line Full Text -->
                 <td>
-                    <input type="text" class="inline-edit-input table-reason-input" list="commonReasons" value="${escapeHtml(order.orderReason || '')}" onchange="updateOrderFieldInline('${type}', ${originalIndex}, 'orderReason', this.value)" title="Click to edit Reason">
+                    <div class="cell-content-box">
+                        <input type="text" class="inline-edit-input table-reason-input screen-only-input" value="${escapeHtml(order.orderReason || '')}" onchange="updateOrderFieldInline('${type}', ${originalIndex}, 'orderReason', this.value)" title="Click to edit Reason">
+                        <div class="print-cell-text">${escapeHtml(order.orderReason || '')}</div>
+                    </div>
                 </td>
+                
+                <!-- Amount: Screen Input + Print Full Text -->
                 <td>
-                    <input type="number" class="table-amount-input" value="${orderAmount}" onchange="updateOrderFieldInline('${type}', ${originalIndex}, 'amount', this.value)">
+                    <input type="number" class="table-amount-input screen-only-input" value="${orderAmount}" onchange="updateOrderFieldInline('${type}', ${originalIndex}, 'amount', this.value)">
+                    <div class="print-cell-text center amount">৳${orderAmount.toLocaleString()}</div>
                 </td>
+                
+                <!-- Status: Screen Dropdown + Print Colorful Badge -->
                 <td>
-                    <select class="status-select ${statusClass}" onchange="updateStatus('${type}', ${originalIndex}, this)">
-                        <option value="pending" ${currentStatus === 'pending' ? 'selected' : ''}>⏳ Pending</option>
-                        <option value="sent" ${currentStatus === 'sent' ? 'selected' : ''}>🚚 Parcel Sent</option>
-                        <option value="cancelled" ${currentStatus === 'cancelled' ? 'selected' : ''}>❌ Cancelled</option>
-                    </select>
-                    <button class="delete-btn" onclick="promptDelete('${type}', ${originalIndex})" title="Delete Order">✕</button>
+                    <div class="screen-only-input">
+                        <select class="status-select ${statusClass}" onchange="updateStatus('${type}', ${originalIndex}, this)">
+                            <option value="pending" ${currentStatus === 'pending' ? 'selected' : ''}>⏳ Pending</option>
+                            <option value="sent" ${currentStatus === 'sent' ? 'selected' : ''}>🚚 Parcel Sent</option>
+                            <option value="cancelled" ${currentStatus === 'cancelled' ? 'selected' : ''}>❌ Cancelled</option>
+                        </select>
+                        <button class="delete-btn" onclick="promptDelete('${type}', ${originalIndex})" title="Delete Order">✕</button>
+                    </div>
+                    <div class="print-cell-text center">
+                        <span class="print-status-badge ${statusClass}">${statusBadgeText}</span>
+                    </div>
                 </td>
             </tr>`;
             tbody.innerHTML += row;
         });
 
-        // Summary Rows
+        // Summary Rows with Color in Print & Screen
         let totalRows = `<tr class="total-row">
-            <td colspan="3" style="text-align: right;"><b>Filtered Pending Amount:</b></td>
-            <td id="${type}PendingTotalDisplay" style="color: var(--warning-text);"><b>৳${totalPendingInView.toLocaleString()}</b></td>
+            <td colspan="3" style="text-align: right;"><b>Filtered Pending Total:</b></td>
+            <td id="${type}PendingTotalDisplay" class="print-pending-total" style="color: var(--warning-text); font-weight: 800;">৳${totalPendingInView.toLocaleString()}</td>
             <td></td>
         </tr>
         <tr class="total-row">
-            <td colspan="3" style="text-align: right;"><b>Filtered Parcel Sent Amount:</b></td>
-            <td id="${type}SentTotalDisplay" style="color: var(--success-text);"><b>৳${totalSentInView.toLocaleString()}</b></td>
+            <td colspan="3" style="text-align: right;"><b>Filtered Parcel Sent Total:</b></td>
+            <td id="${type}SentTotalDisplay" class="print-sent-total" style="color: var(--success-text); font-weight: 800;">৳${totalSentInView.toLocaleString()}</td>
             <td></td>
         </tr>`;
         tbody.innerHTML += totalRows;
@@ -1541,7 +1955,7 @@
         await window.fbSaveOrder(type, selectedDate, orders);
         
         selectElement.className = 'status-select status-' + selectElement.value;
-        showToast(`Status changed to ${selectElement.value.toUpperCase()}`, "info");
+        showToast(`Status updated to ${selectElement.value.toUpperCase()}`, "info");
 
         updateDashboardStats(type, orders);
         renderFilteredTable(type);
@@ -1553,8 +1967,8 @@
 
         const preview = document.getElementById('modalOrderDetails');
         if (order) {
-            preview.innerHTML = `<strong>Order:</strong> ${escapeHtml(order.orderNo)}<br>
-                                 <strong>Reason:</strong> ${escapeHtml(order.orderReason)}<br>
+            preview.innerHTML = `<strong>Order / Customer:</strong> ${escapeHtml(order.orderNo)}<br>
+                                 <strong>Pending Reason:</strong> ${escapeHtml(order.orderReason)}<br>
                                  <strong>Amount:</strong> ৳${(order.amount || 0).toLocaleString()}`;
         }
         document.getElementById('customConfirmModal').style.display = 'flex';
@@ -1627,13 +2041,18 @@
 
     function preparePrint(type) {
         let selectedDate = document.getElementById('checkDateInput').value;
-        let titleEl = document.getElementById(type === 'tony' ? 'printDateTitleTony' : 'printDateTitleSanvees');
         let brandName = type === 'tony' ? "Sanvee's by Tony" : "Sanvee's";
-        
+        let subtitleEl = document.getElementById(type === 'tony' ? 'printSubtitleTony' : 'printSubtitleSanvees');
+        let timestampEl = document.getElementById(type === 'tony' ? 'printFooterTimestampTony' : 'printFooterTimestampSanvees');
+
         if (selectedDate) {
             let formattedDate = new Date(selectedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-            titleEl.innerText = `${brandName} - Pending Orders Report | Date: ${formattedDate}`;
+            subtitleEl.innerText = `Pending Orders Statement | Date: ${formattedDate}`;
         }
+        
+        let now = new Date().toLocaleString();
+        if (timestampEl) timestampEl.innerText = `Printed on: ${now}`;
+
         window.print();
     }
 </script>
