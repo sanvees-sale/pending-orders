@@ -751,6 +751,53 @@
             text-align: left;
         }
 
+        .order-cell-box {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .order-cell-box .inline-edit-input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .copy-btn {
+            background: var(--card-sub-bg);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            flex-shrink: 0;
+            padding: 0;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--border-focus);
+            transform: scale(1.08);
+            box-shadow: 0 2px 8px var(--primary-glow);
+        }
+
+        .copy-btn:active {
+            transform: scale(0.92);
+        }
+
+        .copy-btn.copied {
+            background: var(--success-light);
+            color: var(--success-text);
+            border-color: var(--success-border);
+            transform: scale(1.08);
+        }
+
         .inline-edit-input {
             width: 100%;
             padding: 8px 10px;
@@ -1866,10 +1913,16 @@
             let row = `<tr>
                 <td><b>${displayIndex + 1}</b></td>
                 
-                <!-- Order No: Screen Input + Print Full Text -->
+                <!-- Order No: Screen Input + Copy Button + Print Full Text -->
                 <td>
-                    <div class="cell-content-box">
+                    <div class="cell-content-box order-cell-box">
                         <input type="text" class="inline-edit-input table-order-input screen-only-input" value="${escapeHtml(order.orderNo || '')}" onchange="updateOrderFieldInline('${type}', ${originalIndex}, 'orderNo', this.value)" title="Click to edit Order Number">
+                        <button type="button" class="copy-btn screen-only-input" onclick="copyOrderInput(this)" title="Copy number">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
                         <div class="print-cell-text bold">${escapeHtml(order.orderNo || '')}</div>
                     </div>
                 </td>
@@ -1927,6 +1980,64 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }
+
+    function copyOrderInput(btn) {
+        const parent = btn.closest('.cell-content-box') || btn.parentElement;
+        const input = parent ? parent.querySelector('.table-order-input') : null;
+        const text = input ? input.value.trim() : '';
+
+        if (!text) {
+            showToast("Nothing to copy!", "error");
+            return;
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => {
+                handleCopySuccess(btn, text);
+            }).catch(() => {
+                fallbackCopyText(btn, text);
+            });
+        } else {
+            fallbackCopyText(btn, text);
+        }
+    }
+
+    function fallbackCopyText(btn, text) {
+        try {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            if (successful) {
+                handleCopySuccess(btn, text);
+            } else {
+                showToast("Failed to copy", "error");
+            }
+        } catch (err) {
+            console.error('Copy fallback error:', err);
+            showToast("Failed to copy", "error");
+        }
+    }
+
+    function handleCopySuccess(btn, text) {
+        showToast(`Copied: ${text}`, "success");
+        if (!btn) return;
+
+        btn.classList.add('copied');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+
+        setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerHTML = originalHTML;
+        }, 1500);
     }
 
     async function updateOrderFieldInline(type, originalIndex, field, value) {
