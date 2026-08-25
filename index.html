@@ -29,6 +29,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // Standard Orders Handlers
         window.fbSaveOrder = async function(type, dateStr, orders) {
             try {
                 await set(ref(db, `orders/${type}/${dateStr}`), orders);
@@ -68,6 +69,46 @@
                 return null;
             }
         };
+
+        // Restocked Product Orders Handlers
+        window.fbSaveRestockOrders = async function(brand, dateStr, orders) {
+            try {
+                await set(ref(db, `restock_orders/${brand}/${dateStr}`), orders);
+                return true;
+            } catch (error) {
+                console.error("Error saving restock data to Firebase: ", error);
+                window.showToast("Failed to save restock data", "error");
+                return false;
+            }
+        };
+
+        window.fbLoadRestockOrders = async function(brand, dateStr) {
+            try {
+                const snapshot = await get(child(ref(db), `restock_orders/${brand}/${dateStr}`));
+                if (snapshot.exists()) {
+                    return snapshot.val();
+                } else {
+                    return null;
+                }
+            } catch (error) {
+                console.error("Error loading restock data from Firebase: ", error);
+                return null;
+            }
+        };
+
+        window.fbLoadAllRestockDates = async function(brand) {
+            try {
+                const snapshot = await get(child(ref(db), `restock_orders/${brand}`));
+                if (snapshot.exists()) {
+                    return snapshot.val();
+                } else {
+                    return null;
+                }
+            } catch (error) {
+                console.error("Error loading all restock dates from Firebase: ", error);
+                return null;
+            }
+        };
     </script>
 
     <style>
@@ -99,6 +140,7 @@
             --amber-grad: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
             --rose-grad: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%);
             --violet-grad: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
+            --pink-grad: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
             
             --success: #10b981;
             --success-light: #ecfdf5;
@@ -275,63 +317,57 @@
             padding: 8px 16px;
             border-radius: 14px;
             border: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 13px;
             box-shadow: var(--shadow-xs);
         }
 
         .date-badge label {
-            font-size: 13px;
-            font-weight: 700;
             color: var(--text-muted);
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
         }
 
         .date-badge input[type="date"] {
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 6px 12px;
-            font-size: 13px;
+            border: none;
+            background: transparent;
+            font-size: 13.5px;
             font-weight: 700;
             color: var(--text-main);
-            background: var(--input-bg);
             outline: none;
-            cursor: pointer;
             font-family: inherit;
-            transition: all 0.2s ease;
+            cursor: pointer;
         }
 
-        .date-badge input[type="date"]:focus {
-            border-color: var(--border-focus);
-            box-shadow: 0 0 0 3px var(--primary-glow);
-        }
-
+        /* Theme Toggle Button */
         .theme-toggle-btn {
             background: var(--card-sub-bg);
             border: 1px solid var(--border);
             color: var(--text-main);
-            padding: 10px 16px;
+            padding: 9px 16px;
             border-radius: 14px;
-            cursor: pointer;
             font-size: 13px;
             font-weight: 700;
+            cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: var(--shadow-xs);
         }
 
         .theme-toggle-btn:hover {
             border-color: var(--border-focus);
-            transform: translateY(-2px);
+            transform: translateY(-1px);
             box-shadow: var(--shadow-sm);
         }
 
-        /* Tabs Design */
+        /* Tab Switcher - 4 Clean Pills */
         .tabs {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 28px;
             background: var(--card-sub-bg);
             padding: 6px;
@@ -341,22 +377,23 @@
             margin-right: auto;
             border: 1px solid var(--border);
             box-shadow: var(--shadow-xs);
+            flex-wrap: wrap;
         }
 
         .tab-btn {
-            padding: 12px 30px;
-            background-color: transparent;
-            color: var(--text-muted);
+            padding: 10px 20px;
+            font-size: 13.5px;
+            font-weight: 700;
             border: none;
+            background: transparent;
+            color: var(--text-muted);
             border-radius: 14px;
             cursor: pointer;
-            font-weight: 700;
-            font-size: 14px;
-            font-family: inherit;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             align-items: center;
             gap: 8px;
+            font-family: inherit;
         }
 
         .tab-btn:hover {
@@ -372,7 +409,7 @@
 
         .tab-content {
             display: none;
-            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: fadeIn 0.3s ease;
         }
 
         .tab-content.active {
@@ -380,14 +417,55 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
+            from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Ultra Vibrant Stats Grid */
+        /* Stylish Sanvee's Brand Lockup */
+        .sanvees-brand-lockup {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sanvees-brand-logo-img {
+            height: 48px;
+            width: 48px;
+            border-radius: 12px;
+            object-fit: cover;
+            box-shadow: 0 4px 12px rgba(219, 39, 119, 0.25);
+            display: block;
+        }
+
+        .sanvees-brand-text-box {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .sanvees-brand-name-styled {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #db2777 0%, #e11d48 50%, #be123c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+        }
+
+        .sanvees-brand-subtitle {
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            color: #be185d;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        /* Dashboard Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 16px;
             margin-bottom: 28px;
         }
@@ -396,13 +474,13 @@
             background: var(--card-sub-bg);
             border: 1px solid var(--border);
             border-radius: 20px;
-            padding: 18px 22px;
+            padding: 20px;
             display: flex;
             align-items: center;
             gap: 16px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             overflow: hidden;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: var(--shadow-xs);
         }
 
@@ -411,7 +489,7 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 4px;
+            width: 5px;
             height: 100%;
             border-radius: 4px 0 0 4px;
         }
@@ -420,80 +498,76 @@
         .stat-card.amber::before { background: var(--amber-grad); }
         .stat-card.emerald::before { background: var(--emerald-grad); }
         .stat-card.rose::before { background: var(--rose-grad); }
+        .stat-card.purple::before { background: var(--violet-grad); }
 
         .stat-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: var(--shadow-md);
             border-color: var(--border-focus);
         }
 
         .stat-icon {
-            width: 50px;
-            height: 50px;
+            width: 52px;
+            height: 52px;
             border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
+            font-size: 24px;
             flex-shrink: 0;
             color: white;
         }
 
-        .stat-icon.blue { background: var(--cyan-grad); box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3); }
-        .stat-icon.amber { background: var(--amber-grad); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
-        .stat-icon.emerald { background: var(--emerald-grad); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
-        .stat-icon.rose { background: var(--rose-grad); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+        .stat-icon.blue { background: var(--cyan-grad); box-shadow: 0 6px 16px rgba(14, 165, 233, 0.25); }
+        .stat-icon.amber { background: var(--amber-grad); box-shadow: 0 6px 16px rgba(245, 158, 11, 0.25); }
+        .stat-icon.emerald { background: var(--emerald-grad); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25); }
+        .stat-icon.rose { background: var(--rose-grad); box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25); }
+        .stat-icon.purple { background: var(--violet-grad); box-shadow: 0 6px 16px rgba(139, 92, 246, 0.25); }
 
         .stat-info {
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            gap: 2px;
+            flex: 1;
         }
 
         .stat-label {
-            font-size: 12px;
-            font-weight: 700;
+            font-size: 11.5px;
             color: var(--text-muted);
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
         }
 
         .stat-value {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 800;
             color: var(--text-main);
-            margin-top: 3px;
-            letter-spacing: -0.03em;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
         }
 
         .stat-sub {
             font-size: 12px;
-            font-weight: 600;
             color: var(--text-muted);
-            margin-top: 2px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            font-weight: 600;
         }
 
-        /* Form Controls Card */
+        /* Add Order Form Card */
         .form-card {
             background: var(--card-sub-bg);
-            padding: 22px 24px;
-            border-radius: 20px;
             border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 22px 24px;
             margin-bottom: 24px;
             box-shadow: var(--shadow-xs);
-            position: relative;
         }
 
         .form-card-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 14px;
-            flex-wrap: wrap;
-            gap: 8px;
+            margin-bottom: 16px;
         }
 
         .form-card-title {
@@ -514,14 +588,14 @@
         input[type="text"], input[type="number"] {
             padding: 12px 16px;
             border: 1px solid var(--border);
-            border-radius: 12px;
-            font-size: 14px;
+            border-radius: 14px;
+            font-size: 13.5px;
+            background: var(--input-bg);
+            color: var(--text-main);
             outline: none;
             transition: all 0.2s ease;
-            background-color: var(--input-bg);
             font-family: inherit;
-            color: var(--text-main);
-            box-shadow: var(--shadow-xs);
+            font-weight: 600;
         }
 
         input[type="text"]:focus, input[type="number"]:focus {
@@ -529,47 +603,29 @@
             box-shadow: 0 0 0 3px var(--primary-glow);
         }
 
-        .input-order {
-            flex: 2;
-            min-width: 210px;
-            font-weight: 600;
-        }
-
-        .input-reason {
-            flex: 3;
-            min-width: 250px;
-        }
-
-        .input-amount {
-            flex: 1.2;
-            min-width: 140px;
-            font-weight: 700;
-        }
+        .input-order { flex: 1.2; min-width: 180px; }
+        .input-reason { flex: 1.8; min-width: 220px; }
+        .input-amount { flex: 0.9; min-width: 130px; }
 
         .btn {
             padding: 12px 24px;
             border: none;
-            border-radius: 12px;
-            cursor: pointer;
+            border-radius: 14px;
+            font-size: 13.5px;
             font-weight: 700;
-            font-size: 14px;
-            font-family: inherit;
-            display: inline-flex;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
             align-items: center;
-            justify-content: center;
             gap: 8px;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: var(--shadow-xs);
-        }
-
-        .btn:active {
-            transform: scale(0.97);
+            font-family: inherit;
+            white-space: nowrap;
         }
 
         .add-btn {
             background: var(--emerald-grad);
             color: white;
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
         }
 
         .add-btn:hover {
@@ -745,7 +801,7 @@
             background-color: rgba(99, 102, 241, 0.03);
         }
 
-        /* Cell Styling for Screen & Print */
+        /* Cell Styling */
         .cell-content-box {
             position: relative;
             text-align: left;
@@ -828,6 +884,11 @@
             color: var(--text-main);
         }
 
+        .table-product-input {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
         .table-reason-input {
             font-weight: 500;
             color: var(--text-main);
@@ -852,7 +913,7 @@
             box-shadow: 0 0 0 3px var(--primary-glow);
         }
 
-        /* Print-only Text Container (Hidden on Screen) */
+        /* Print-only Text Container */
         .print-cell-text {
             display: none;
         }
@@ -861,7 +922,7 @@
         .status-select {
             padding: 8px 12px;
             border-radius: 10px;
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 800;
             border: 1px solid transparent;
             cursor: pointer;
@@ -889,173 +950,200 @@
             border-color: var(--danger-border);
         }
 
-        .delete-btn {
-            background: var(--danger-light);
-            border: 1px solid var(--danger-border);
-            color: var(--danger);
-            cursor: pointer;
-            font-size: 13px;
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
-            margin-left: 6px;
+        .status-awaiting {
+            background-color: rgba(168, 85, 247, 0.15);
+            color: #9333ea;
+            border-color: rgba(168, 85, 247, 0.35);
+        }
+
+        [data-theme="dark"] .status-awaiting {
+            background-color: rgba(168, 85, 247, 0.22);
+            color: #c084fc;
+            border-color: rgba(168, 85, 247, 0.45);
+        }
+
+        .status-ready {
+            background-color: rgba(14, 165, 233, 0.15);
+            color: #0284c7;
+            border-color: rgba(14, 165, 233, 0.35);
+        }
+
+        [data-theme="dark"] .status-ready {
+            background-color: rgba(14, 165, 233, 0.22);
+            color: #38bdf8;
+            border-color: rgba(14, 165, 233, 0.45);
+        }
+
+        /* Quick Ship Button */
+        .quick-ship-btn {
+            background: var(--success-light);
+            border: 1px solid var(--success-border);
+            color: var(--success-text);
+            padding: 7px 11px;
+            border-radius: 8px;
+            font-size: 11.5px;
             font-weight: 800;
+            cursor: pointer;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            gap: 4px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .quick-ship-btn:hover {
+            background: #d1fae5;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .delete-btn {
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            margin-left: 4px;
         }
 
         .delete-btn:hover {
-            background: var(--danger);
-            color: white;
-            transform: scale(1.08);
+            background: var(--danger-light);
+            color: var(--danger);
+            transform: scale(1.1);
         }
 
-        /* Total Row Styling */
-        .total-row td {
+        .total-row {
             font-weight: 800;
             background-color: var(--card-sub-bg);
             border-top: 2px solid var(--border);
-            color: var(--text-main);
-            font-size: 14px;
         }
 
-        /* Toast System */
+        /* Toast Notifications */
         .toast-container {
             position: fixed;
-            bottom: 28px;
-            right: 28px;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            z-index: 10000;
-            pointer-events: none;
+            gap: 8px;
         }
 
         .toast {
-            pointer-events: auto;
             background: var(--card-bg);
             color: var(--text-main);
-            padding: 14px 20px;
+            padding: 12px 20px;
             border-radius: 14px;
-            font-size: 13.5px;
-            font-weight: 700;
             box-shadow: var(--shadow-lg);
             border: 1px solid var(--border);
+            font-size: 13px;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 12px;
-            animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            max-width: 360px;
-            backdrop-filter: blur(12px);
+            gap: 10px;
+            animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(10px);
         }
 
-        .toast.success { border-left: 5px solid var(--success); }
-        .toast.error { border-left: 5px solid var(--danger); }
-        .toast.info { border-left: 5px solid var(--primary); }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast.info { border-left: 4px solid var(--primary); }
 
-        @keyframes slideIn {
+        @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
 
-        /* Custom Modal */
+        /* Modal Dialog */
         .modal-overlay {
-            display: none;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(6px);
-            z-index: 9999;
-            justify-content: center;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 999;
+            display: none;
             align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
         }
 
         .modal-box {
             background: var(--card-bg);
-            padding: 32px;
-            border-radius: 22px;
-            box-shadow: var(--shadow-lg);
             border: 1px solid var(--border);
-            text-align: center;
-            max-width: 400px;
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 440px;
             width: 90%;
-            animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--shadow-lg);
+            text-align: center;
         }
 
-        @keyframes modalPop {
-            0% { transform: scale(0.92); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .modal-box h3 {
-            margin: 0 0 8px 0;
-            font-size: 20px;
+        .modal-title {
+            font-size: 18px;
             font-weight: 800;
             color: var(--text-main);
+            margin-bottom: 8px;
         }
 
-        .modal-box p {
-            margin: 0 0 20px 0;
+        .modal-desc {
             font-size: 13.5px;
             color: var(--text-muted);
             line-height: 1.5;
+            margin-bottom: 20px;
         }
 
         .modal-order-preview {
             background: var(--card-sub-bg);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 12px 14px;
-            font-size: 13px;
-            margin-bottom: 24px;
+            padding: 12px;
+            margin: 12px 0 20px 0;
             text-align: left;
-            line-height: 1.6;
+            font-size: 13px;
         }
 
         .modal-actions {
             display: flex;
-            gap: 12px;
-            justify-content: center;
+            gap: 10px;
+            justify-content: flex-end;
         }
 
         .modal-btn {
-            padding: 10px 20px;
+            padding: 10px 18px;
             border-radius: 12px;
-            font-size: 13.5px;
+            font-size: 13px;
             font-weight: 700;
-            cursor: pointer;
             border: none;
-            transition: all 0.2s ease;
+            cursor: pointer;
             font-family: inherit;
+            transition: all 0.2s ease;
         }
 
         .modal-btn-cancel {
-            background-color: var(--card-sub-bg);
+            background: var(--card-sub-bg);
             color: var(--text-main);
             border: 1px solid var(--border);
         }
 
-        .modal-btn-cancel:hover {
-            background-color: var(--border);
+        .modal-btn-delete {
+            background: var(--danger-light);
+            color: var(--danger);
+            border: 1px solid var(--danger-border);
         }
 
-        .modal-btn-confirm {
-            background: var(--rose-grad);
+        .modal-btn-delete:hover {
+            background: var(--danger);
             color: white;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        }
-
-        .modal-btn-confirm:hover {
-            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.45);
         }
 
         /* ========================================================================= */
-        /* PRINT SPECIFIC STYLES - ULTRA VIBRANT, COLOURFUL & FLAWLESS MULTI-LINE   */
+        /* PRINT SPECIFIC STYLES */
         /* ========================================================================= */
         .print-header-block {
             display: none;
@@ -1063,7 +1151,7 @@
 
         @media print {
             @page {
-                margin: 12mm 10mm;
+                margin: 10mm 10mm;
                 size: portrait;
             }
 
@@ -1079,8 +1167,6 @@
                 margin: 0 !important;
                 font-size: 11pt;
                 font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
             }
 
             .container {
@@ -1095,96 +1181,115 @@
             }
 
             /* Hide all screen-only UI */
-            .top-navbar, .tabs, .stats-grid, .form-card, .toolbar, .delete-btn, .modal-overlay, .toast-container, .screen-only-input {
+            .top-navbar, .tabs, .stats-grid, .form-card, .toolbar, .delete-btn, .quick-ship-btn, .modal-overlay, .toast-container, .screen-only-input {
                 display: none !important;
             }
 
-            /* Colorful Vibrant Print Header Banner */
             .print-header-block {
                 display: block !important;
-                background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
-                color: #ffffff !important;
-                padding: 16px 20px !important;
+                border: 2px solid #4f46e5 !important;
+                background: #ffffff !important;
+                padding: 14px 18px !important;
                 border-radius: 12px !important;
-                margin-bottom: 16px !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
+                margin-bottom: 14px !important;
             }
 
-            .print-brand-title {
-                font-size: 18pt !important;
+            .print-header-top {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                border-bottom: 1.5px solid #e0e7ff !important;
+                padding-bottom: 12px !important;
+                margin-bottom: 12px !important;
+                gap: 16px !important;
+            }
+
+            .print-logo-container {
+                display: flex !important;
+                align-items: center !important;
+                gap: 12px !important;
+            }
+
+            .print-shop-logo {
+                height: 56px !important;
+                width: auto !important;
+                max-width: 220px !important;
+                object-fit: contain !important;
+                display: block !important;
+            }
+
+            .sanvees-brand-name-styled {
+                -webkit-text-fill-color: #be123c !important;
+                color: #be123c !important;
+                font-size: 20pt !important;
                 font-weight: 800 !important;
-                margin: 0 0 4px 0 !important;
-                text-align: center !important;
+            }
+
+            .sanvees-brand-subtitle {
+                color: #9d174d !important;
+                font-size: 7.5pt !important;
+                font-weight: 700 !important;
+            }
+
+            .print-doc-meta {
+                text-align: right !important;
+                flex-shrink: 0 !important;
+            }
+
+            .print-doc-badge {
+                display: inline-block !important;
+                background: #4f46e5 !important;
                 color: #ffffff !important;
-                letter-spacing: -0.02em !important;
+                font-size: 8.5pt !important;
+                font-weight: 800 !important;
+                padding: 4px 10px !important;
+                border-radius: 6px !important;
+                letter-spacing: 0.04em !important;
+                text-transform: uppercase !important;
+                margin-bottom: 4px !important;
             }
 
-            .print-subtitle {
-                font-size: 10.5pt !important;
-                font-weight: 600 !important;
-                text-align: center !important;
-                color: rgba(255, 255, 255, 0.95) !important;
-                margin: 0 !important;
+            .print-doc-date {
+                font-size: 9.5pt !important;
+                font-weight: 700 !important;
+                color: #0f172a !important;
             }
 
-            /* Colorful Summary Metric Cards in Print */
             .print-summary-boxes {
                 display: grid !important;
                 grid-template-columns: repeat(4, 1fr) !important;
-                gap: 10px !important;
-                margin: 14px 0 !important;
+                gap: 8px !important;
+                margin: 0 !important;
                 background: transparent !important;
                 border: none !important;
                 padding: 0 !important;
             }
 
             .print-summary-box {
-                padding: 10px 12px !important;
-                border-radius: 10px !important;
+                padding: 8px 10px !important;
+                border-radius: 8px !important;
                 text-align: center !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
             }
 
-            .print-summary-box.blue {
-                background: #eef2ff !important;
-                border: 1px solid #c7d2fe !important;
-                color: #3730a3 !important;
-            }
-
-            .print-summary-box.amber {
-                background: #fffbeb !important;
-                border: 1px solid #fde68a !important;
-                color: #b45309 !important;
-            }
-
-            .print-summary-box.emerald {
-                background: #ecfdf5 !important;
-                border: 1px solid #a7f3d0 !important;
-                color: #047857 !important;
-            }
-
-            .print-summary-box.rose {
-                background: #fef2f2 !important;
-                border: 1px solid #fecaca !important;
-                color: #b91c1c !important;
-            }
+            .print-summary-box.blue { background: #eef2ff !important; border: 1px solid #c7d2fe !important; color: #3730a3 !important; }
+            .print-summary-box.amber { background: #fffbeb !important; border: 1px solid #fde68a !important; color: #b45309 !important; }
+            .print-summary-box.emerald { background: #ecfdf5 !important; border: 1px solid #a7f3d0 !important; color: #047857 !important; }
+            .print-summary-box.rose { background: #fef2f2 !important; border: 1px solid #fecaca !important; color: #b91c1c !important; }
+            .print-summary-box.purple { background: #fdf4ff !important; border: 1px solid #f0abfc !important; color: #9333ea !important; }
 
             .print-summary-box strong {
                 display: block !important;
-                font-size: 8pt !important;
+                font-size: 7.5pt !important;
                 text-transform: uppercase !important;
                 letter-spacing: 0.05em !important;
                 margin-bottom: 2px !important;
             }
 
             .print-summary-box span {
-                font-size: 13pt !important;
+                font-size: 11.5pt !important;
                 font-weight: 800 !important;
             }
 
-            /* Table Layout for Print */
             .table-container {
                 border: 1px solid #cbd5e1 !important;
                 border-radius: 10px !important;
@@ -1199,8 +1304,8 @@
 
             th, td {
                 border: 1px solid #e2e8f0 !important;
-                padding: 9px 12px !important;
-                font-size: 9.5pt !important;
+                padding: 8px 10px !important;
+                font-size: 9pt !important;
                 vertical-align: middle !important;
             }
 
@@ -1210,93 +1315,54 @@
                 font-weight: 800 !important;
                 text-align: center !important;
                 border-bottom: 2px solid #cbd5e1 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
             }
 
-            /* Display FULL TEXT for Print with Multi-line Wrapping */
             .print-cell-text {
                 display: block !important;
                 white-space: pre-wrap !important;
                 word-break: break-word !important;
-                line-height: 1.45 !important;
-                font-size: 9.5pt !important;
+                line-height: 1.4 !important;
+                font-size: 9pt !important;
                 text-align: left !important;
                 color: #0f172a !important;
             }
 
-            .print-cell-text.center {
-                text-align: center !important;
-            }
+            .print-cell-text.center { text-align: center !important; }
+            .print-cell-text.bold { font-weight: 700 !important; color: #1e1b4b !important; }
+            .print-cell-text.amount { font-weight: 800 !important; color: #0f172a !important; font-size: 9.5pt !important; }
 
-            .print-cell-text.bold {
-                font-weight: 700 !important;
-                color: #1e1b4b !important;
-            }
-
-            .print-cell-text.amount {
-                font-weight: 800 !important;
-                color: #0f172a !important;
-                font-size: 10pt !important;
-            }
-
-            /* Colorful Status Badges in Print */
             .print-status-badge {
                 display: inline-block !important;
-                padding: 4px 9px !important;
+                padding: 3px 8px !important;
                 font-weight: 800 !important;
-                font-size: 8.5pt !important;
+                font-size: 8pt !important;
                 border-radius: 6px !important;
                 text-transform: uppercase !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
                 white-space: nowrap !important;
             }
 
-            .print-status-badge.status-pending {
-                background: #fef3c7 !important;
-                color: #b45309 !important;
-                border: 1px solid #fde68a !important;
-            }
+            .print-status-badge.status-pending { background: #fef3c7 !important; color: #b45309 !important; border: 1px solid #fde68a !important; }
+            .print-status-badge.status-sent { background: #d1fae5 !important; color: #047857 !important; border: 1px solid #a7f3d0 !important; }
+            .print-status-badge.status-cancelled { background: #fee2e2 !important; color: #b91c1c !important; border: 1px solid #fecaca !important; }
+            .print-status-badge.status-awaiting { background: #fdf4ff !important; color: #9333ea !important; border: 1px solid #f0abfc !important; }
+            .print-status-badge.status-ready { background: #eff6ff !important; color: #0284c7 !important; border: 1px solid #bfdbfe !important; }
 
-            .print-status-badge.status-sent {
-                background: #d1fae5 !important;
-                color: #047857 !important;
-                border: 1px solid #a7f3d0 !important;
-            }
-
-            .print-status-badge.status-cancelled {
-                background: #fee2e2 !important;
-                color: #b91c1c !important;
-                border: 1px solid #fecaca !important;
-            }
-
-            /* Colorful Total Rows in Print */
             .total-row td {
                 background: #f8fafc !important;
                 font-weight: 800 !important;
                 border-top: 2px solid #cbd5e1 !important;
-                font-size: 10pt !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
+                font-size: 9.5pt !important;
             }
 
-            .print-pending-total {
-                color: #b45309 !important;
-                font-weight: 800 !important;
-            }
-
-            .print-sent-total {
-                color: #047857 !important;
-                font-weight: 800 !important;
-            }
+            .print-pending-total { color: #b45309 !important; font-weight: 800 !important; }
+            .print-sent-total { color: #047857 !important; font-weight: 800 !important; }
 
             .print-footer {
                 display: flex !important;
                 justify-content: space-between !important;
-                margin-top: 20px !important;
-                padding-top: 10px !important;
-                font-size: 8.5pt !important;
+                margin-top: 16px !important;
+                padding-top: 8px !important;
+                font-size: 8pt !important;
                 color: #64748b !important;
                 border-top: 1px dashed #cbd5e1 !important;
             }
@@ -1330,22 +1396,37 @@
         </div>
     </div>
 
-    <!-- Tab Buttons -->
+    <!-- Main Navigation Tabs: 4 Dedicated Tabs -->
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('tony')">
             <span>✨</span> Sanvee's by Tony
         </button>
+        <button class="tab-btn" onclick="switchTab('tony-restock')">
+            <span>🔄</span> Restocked Orders
+        </button>
         <button class="tab-btn" onclick="switchTab('sanvees')">
             <span>👗</span> Sanvee's
         </button>
+        <button class="tab-btn" onclick="switchTab('sanvees-restock')">
+            <span>🔄</span> Restocked Orders
+        </button>
     </div>
 
-    <!-- TAB 1: Sanvee's by Tony -->
+    <!-- ========================================================================= -->
+    <!-- TAB 1: Sanvee's by Tony (Pendings) -->
+    <!-- ========================================================================= -->
     <div id="tab-tony" class="tab-content active">
-        <!-- Print-only Colorful Header -->
+        <!-- Print Header -->
         <div class="print-header-block" id="printHeaderTony">
-            <h1 class="print-brand-title">Sanvee's by Tony</h1>
-            <p class="print-subtitle" id="printSubtitleTony">Pending Orders Statement</p>
+            <div class="print-header-top">
+                <div class="print-logo-container">
+                    <img class="print-shop-logo" src="logo_tony.png" alt="Sanvee's by Tony">
+                </div>
+                <div class="print-doc-meta">
+                    <div class="print-doc-badge">PENDING ORDERS STATEMENT</div>
+                    <div class="print-doc-date" id="printDocDateTony">Date: Aug 25, 2026</div>
+                </div>
+            </div>
             <div class="print-summary-boxes">
                 <div class="print-summary-box blue">
                     <strong>Total Orders</strong>
@@ -1357,16 +1438,16 @@
                 </div>
                 <div class="print-summary-box amber">
                     <strong>Pending Amount</strong>
-                    <span id="printTonyPendingAmt">৳0</span>
+                    <span id="printTonyPendingAmt">Tk 0</span>
                 </div>
                 <div class="print-summary-box emerald">
                     <strong>Sent Amount</strong>
-                    <span id="printTonySentAmt">৳0</span>
+                    <span id="printTonySentAmt">Tk 0</span>
                 </div>
             </div>
         </div>
 
-        <!-- Ultra Vibrant Stats Grid -->
+        <!-- Stats Grid -->
         <div class="stats-grid">
             <div class="stat-card blue">
                 <div class="stat-icon blue">📋</div>
@@ -1380,7 +1461,7 @@
                 <div class="stat-icon amber">⏳</div>
                 <div class="stat-info">
                     <span class="stat-label">Pending</span>
-                    <span class="stat-value" id="tonyStatPendingAmt">৳0</span>
+                    <span class="stat-value" id="tonyStatPendingAmt">Tk 0</span>
                     <span class="stat-sub" id="tonyStatPendingCount">0 orders</span>
                 </div>
             </div>
@@ -1388,7 +1469,7 @@
                 <div class="stat-icon emerald">🚚</div>
                 <div class="stat-info">
                     <span class="stat-label">Parcel Sent</span>
-                    <span class="stat-value" id="tonyStatSentAmt">৳0</span>
+                    <span class="stat-value" id="tonyStatSentAmt">Tk 0</span>
                     <span class="stat-sub" id="tonyStatSentCount">0 orders</span>
                 </div>
             </div>
@@ -1397,7 +1478,7 @@
                 <div class="stat-info">
                     <span class="stat-label">Cancelled</span>
                     <span class="stat-value" id="tonyStatCancelledCount">0</span>
-                    <span class="stat-sub" id="tonyStatCancelledAmt">৳0</span>
+                    <span class="stat-sub" id="tonyStatCancelledAmt">Tk 0</span>
                 </div>
             </div>
         </div>
@@ -1405,7 +1486,7 @@
         <!-- Add Order Form -->
         <div class="form-card">
             <div class="form-card-header">
-                <div class="form-card-title">➕ Add New Pending Order</div>
+                <div class="form-card-title">➕ Add New Pending Order (Sanvee's by Tony)</div>
             </div>
             <div class="form-group">
                 <input type="text" id="tonyOrderNo" class="input-order" placeholder="Order No / Customer Name" onkeypress="handleFormEnter(event, 'tony')">
@@ -1451,19 +1532,162 @@
             </table>
         </div>
 
-        <!-- Print Footer -->
         <div class="print-footer">
-            <span>Generated from Sanvee's Orders Hub</span>
+            <span>Generated from Sanvee's by Tony Hub</span>
             <span id="printFooterTimestampTony"></span>
         </div>
     </div>
 
-    <!-- TAB 2: Sanvee's -->
+    <!-- ========================================================================= -->
+    <!-- TAB 2: Sanvee's by Tony (Restocked Orders) -->
+    <!-- ========================================================================= -->
+    <div id="tab-tony-restock" class="tab-content">
+        <!-- Print Header -->
+        <div class="print-header-block" id="printHeaderTonyRestock">
+            <div class="print-header-top">
+                <div class="print-logo-container">
+                    <img class="print-shop-logo" src="logo_tony.png" alt="Sanvee's by Tony">
+                </div>
+                <div class="print-doc-meta">
+                    <div class="print-doc-badge" style="background:#8b5cf6;">TONY RESTOCK STATEMENT</div>
+                    <div class="print-doc-date" id="printDocDateTonyRestock">Date: Aug 25, 2026</div>
+                </div>
+            </div>
+            <div class="print-summary-boxes">
+                <div class="print-summary-box blue">
+                    <strong>Total Restock Orders</strong>
+                    <span id="printTonyRestockTotalCount">0</span>
+                </div>
+                <div class="print-summary-box purple">
+                    <strong>Awaiting Restock</strong>
+                    <span id="printTonyRestockAwaitingAmt">Tk 0</span>
+                </div>
+                <div class="print-summary-box amber">
+                    <strong>In Stock / Ready</strong>
+                    <span id="printTonyRestockReadyAmt">Tk 0</span>
+                </div>
+                <div class="print-summary-box emerald">
+                    <strong>Parcel Sent</strong>
+                    <span id="printTonyRestockSentAmt">Tk 0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card blue">
+                <div class="stat-icon blue">📦</div>
+                <div class="stat-info">
+                    <span class="stat-label">Total Restock</span>
+                    <span class="stat-value" id="tonyRestockStatTotal">0</span>
+                    <span class="stat-sub">Tony Waiting List</span>
+                </div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-icon purple">⏳</div>
+                <div class="stat-info">
+                    <span class="stat-label">Awaiting Restock</span>
+                    <span class="stat-value" id="tonyRestockStatAwaitingAmt">Tk 0</span>
+                    <span class="stat-sub" id="tonyRestockStatAwaitingCount">0 orders</span>
+                </div>
+            </div>
+            <div class="stat-card amber">
+                <div class="stat-icon amber">✨</div>
+                <div class="stat-info">
+                    <span class="stat-label">In Stock / Ready</span>
+                    <span class="stat-value" id="tonyRestockStatReadyAmt">Tk 0</span>
+                    <span class="stat-sub" id="tonyRestockStatReadyCount">0 orders</span>
+                </div>
+            </div>
+            <div class="stat-card emerald">
+                <div class="stat-icon emerald">🚚</div>
+                <div class="stat-info">
+                    <span class="stat-label">Parcel Sent</span>
+                    <span class="stat-value" id="tonyRestockStatSentAmt">Tk 0</span>
+                    <span class="stat-sub" id="tonyRestockStatSentCount">0 orders</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Restock Order Form -->
+        <div class="form-card">
+            <div class="form-card-header">
+                <div class="form-card-title">🔄 Add Restocked Product Order (Sanvee's by Tony)</div>
+            </div>
+            <div class="form-group">
+                <input type="text" id="tonyRestockOrderNo" class="input-order" placeholder="Customer Name / Phone / Order No" onkeypress="handleRestockFormEnter(event, 'tony')">
+                <input type="text" id="tonyRestockProductName" class="input-reason" placeholder="Product Code / Dress Name / Size" onkeypress="handleRestockFormEnter(event, 'tony')">
+                <input type="text" id="tonyRestockReason" class="input-reason" placeholder="Restock Note (e.g. Expected Monday / Batch 2)" onkeypress="handleRestockFormEnter(event, 'tony')">
+                <input type="number" id="tonyRestockAmount" class="input-amount" placeholder="Amount (BDT)" onkeypress="handleRestockFormEnter(event, 'tony')">
+                <button class="btn add-btn" onclick="addRestockOrder('tony')">➕ Add Restock Order</button>
+            </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="toolbar">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="tonyRestockSearchInput" placeholder="Search customer, phone, product code..." oninput="filterRestockOrders('tony')">
+            </div>
+
+            <div class="filter-chips">
+                <button class="chip active" onclick="setRestockStatusFilter('tony', 'all')" id="tonyRestockFilterAll">All <span class="chip-count" id="tonyRestockChipAll">0</span></button>
+                <button class="chip" onclick="setRestockStatusFilter('tony', 'awaiting')" id="tonyRestockFilterAwaiting">⏳ Awaiting <span class="chip-count" id="tonyRestockChipAwaiting">0</span></button>
+                <button class="chip" onclick="setRestockStatusFilter('tony', 'ready')" id="tonyRestockFilterReady">📦 In Stock <span class="chip-count" id="tonyRestockChipReady">0</span></button>
+                <button class="chip" onclick="setRestockStatusFilter('tony', 'sent')" id="tonyRestockFilterSent">🚚 Sent <span class="chip-count" id="tonyRestockChipSent">0</span></button>
+                <button class="chip" onclick="setRestockStatusFilter('tony', 'cancelled')" id="tonyRestockFilterCancelled">❌ Cancelled <span class="chip-count" id="tonyRestockChipCancelled">0</span></button>
+            </div>
+
+            <div class="action-btns">
+                <button class="action-btn export" onclick="exportRestockToCSV('tony')" title="Export to Excel CSV">📊 Export Excel</button>
+                <button class="action-btn print" onclick="prepareRestockPrint('tony')" title="Print / PDF">🖨️ Print Report</button>
+            </div>
+        </div>
+
+        <!-- Restocked Orders Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="4%">#</th>
+                        <th width="22%">Customer / Order No</th>
+                        <th width="24%">Product Code & Size</th>
+                        <th width="26%">Restock Note / Batch</th>
+                        <th width="10%">Amount (BDT)</th>
+                        <th width="14%">Status / Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tonyRestockTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="print-footer">
+            <span>Generated from Sanvee's by Tony Restock Hub</span>
+            <span id="printFooterTimestampTonyRestock"></span>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: Sanvee's (Pendings) -->
+    <!-- ========================================================================= -->
     <div id="tab-sanvees" class="tab-content">
-        <!-- Print-only Colorful Header -->
+        <!-- Print Header with Official Sanvee's Logo + Stylish Typography -->
         <div class="print-header-block" id="printHeaderSanvees">
-            <h1 class="print-brand-title">Sanvee's</h1>
-            <p class="print-subtitle" id="printSubtitleSanvees">Pending Orders Statement</p>
+            <div class="print-header-top">
+                <div class="print-logo-container">
+                    <div class="sanvees-brand-lockup">
+                        <img class="sanvees-brand-logo-img" src="logo_sanvees.png" alt="Sanvee's">
+                        <div class="sanvees-brand-text-box">
+                            <span class="sanvees-brand-name-styled">Sanvee's</span>
+                            <span class="sanvees-brand-subtitle">EXCLUSIVE WOMEN'S WEAR</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="print-doc-meta">
+                    <div class="print-doc-badge">PENDING ORDERS STATEMENT</div>
+                    <div class="print-doc-date" id="printDocDateSanvees">Date: Aug 25, 2026</div>
+                </div>
+            </div>
             <div class="print-summary-boxes">
                 <div class="print-summary-box blue">
                     <strong>Total Orders</strong>
@@ -1475,16 +1699,16 @@
                 </div>
                 <div class="print-summary-box amber">
                     <strong>Pending Amount</strong>
-                    <span id="printSanveesPendingAmt">৳0</span>
+                    <span id="printSanveesPendingAmt">Tk 0</span>
                 </div>
                 <div class="print-summary-box emerald">
                     <strong>Sent Amount</strong>
-                    <span id="printSanveesSentAmt">৳0</span>
+                    <span id="printSanveesSentAmt">Tk 0</span>
                 </div>
             </div>
         </div>
 
-        <!-- Ultra Vibrant Stats Grid -->
+        <!-- Stats Grid -->
         <div class="stats-grid">
             <div class="stat-card blue">
                 <div class="stat-icon blue">📋</div>
@@ -1498,7 +1722,7 @@
                 <div class="stat-icon amber">⏳</div>
                 <div class="stat-info">
                     <span class="stat-label">Pending</span>
-                    <span class="stat-value" id="sanveesStatPendingAmt">৳0</span>
+                    <span class="stat-value" id="sanveesStatPendingAmt">Tk 0</span>
                     <span class="stat-sub" id="sanveesStatPendingCount">0 orders</span>
                 </div>
             </div>
@@ -1506,7 +1730,7 @@
                 <div class="stat-icon emerald">🚚</div>
                 <div class="stat-info">
                     <span class="stat-label">Parcel Sent</span>
-                    <span class="stat-value" id="sanveesStatSentAmt">৳0</span>
+                    <span class="stat-value" id="sanveesStatSentAmt">Tk 0</span>
                     <span class="stat-sub" id="sanveesStatSentCount">0 orders</span>
                 </div>
             </div>
@@ -1515,7 +1739,7 @@
                 <div class="stat-info">
                     <span class="stat-label">Cancelled</span>
                     <span class="stat-value" id="sanveesStatCancelledCount">0</span>
-                    <span class="stat-sub" id="sanveesStatCancelledAmt">৳0</span>
+                    <span class="stat-sub" id="sanveesStatCancelledAmt">Tk 0</span>
                 </div>
             </div>
         </div>
@@ -1523,7 +1747,12 @@
         <!-- Add Order Form -->
         <div class="form-card">
             <div class="form-card-header">
-                <div class="form-card-title">➕ Add New Pending Order</div>
+                <div class="form-card-title">
+                    <div class="sanvees-brand-lockup" style="gap: 8px;">
+                        <img src="logo_sanvees.png" style="width: 26px; height: 26px; border-radius: 6px;" alt="Sanvee's">
+                        <span>➕ Add New Pending Order (Sanvee's)</span>
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <input type="text" id="sanveesOrderNo" class="input-order" placeholder="Order No / Customer Name" onkeypress="handleFormEnter(event, 'sanvees')">
@@ -1569,35 +1798,186 @@
             </table>
         </div>
 
-        <!-- Print Footer -->
         <div class="print-footer">
             <span>Generated from Sanvee's Orders Hub</span>
             <span id="printFooterTimestampSanvees"></span>
         </div>
     </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: Sanvee's (Restocked Orders) -->
+    <!-- ========================================================================= -->
+    <div id="tab-sanvees-restock" class="tab-content">
+        <!-- Print Header -->
+        <div class="print-header-block" id="printHeaderSanveesRestock">
+            <div class="print-header-top">
+                <div class="print-logo-container">
+                    <div class="sanvees-brand-lockup">
+                        <img class="sanvees-brand-logo-img" src="logo_sanvees.png" alt="Sanvee's">
+                        <div class="sanvees-brand-text-box">
+                            <span class="sanvees-brand-name-styled">Sanvee's</span>
+                            <span class="sanvees-brand-subtitle">RESTOCKED PRODUCT ORDERS</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="print-doc-meta">
+                    <div class="print-doc-badge" style="background:#db2777;">SANVEE'S RESTOCK STATEMENT</div>
+                    <div class="print-doc-date" id="printDocDateSanveesRestock">Date: Aug 25, 2026</div>
+                </div>
+            </div>
+            <div class="print-summary-boxes">
+                <div class="print-summary-box blue">
+                    <strong>Total Restock Orders</strong>
+                    <span id="printSanveesRestockTotalCount">0</span>
+                </div>
+                <div class="print-summary-box purple">
+                    <strong>Awaiting Restock</strong>
+                    <span id="printSanveesRestockAwaitingAmt">Tk 0</span>
+                </div>
+                <div class="print-summary-box amber">
+                    <strong>In Stock / Ready</strong>
+                    <span id="printSanveesRestockReadyAmt">Tk 0</span>
+                </div>
+                <div class="print-summary-box emerald">
+                    <strong>Parcel Sent</strong>
+                    <span id="printSanveesRestockSentAmt">Tk 0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card blue">
+                <div class="stat-icon blue">📦</div>
+                <div class="stat-info">
+                    <span class="stat-label">Total Restock</span>
+                    <span class="stat-value" id="sanveesRestockStatTotal">0</span>
+                    <span class="stat-sub">Sanvee's Waiting List</span>
+                </div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-icon purple">⏳</div>
+                <div class="stat-info">
+                    <span class="stat-label">Awaiting Restock</span>
+                    <span class="stat-value" id="sanveesRestockStatAwaitingAmt">Tk 0</span>
+                    <span class="stat-sub" id="sanveesRestockStatAwaitingCount">0 orders</span>
+                </div>
+            </div>
+            <div class="stat-card amber">
+                <div class="stat-icon amber">✨</div>
+                <div class="stat-info">
+                    <span class="stat-label">In Stock / Ready</span>
+                    <span class="stat-value" id="sanveesRestockStatReadyAmt">Tk 0</span>
+                    <span class="stat-sub" id="sanveesRestockStatReadyCount">0 orders</span>
+                </div>
+            </div>
+            <div class="stat-card emerald">
+                <div class="stat-icon emerald">🚚</div>
+                <div class="stat-info">
+                    <span class="stat-label">Parcel Sent</span>
+                    <span class="stat-value" id="sanveesRestockStatSentAmt">Tk 0</span>
+                    <span class="stat-sub" id="sanveesRestockStatSentCount">0 orders</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Restock Order Form -->
+        <div class="form-card">
+            <div class="form-card-header">
+                <div class="form-card-title">
+                    <div class="sanvees-brand-lockup" style="gap: 8px;">
+                        <img src="logo_sanvees.png" style="width: 26px; height: 26px; border-radius: 6px;" alt="Sanvee's">
+                        <span>🔄 Add Restocked Product Order (Sanvee's)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <input type="text" id="sanveesRestockOrderNo" class="input-order" placeholder="Customer Name / Phone / Order No" onkeypress="handleRestockFormEnter(event, 'sanvees')">
+                <input type="text" id="sanveesRestockProductName" class="input-reason" placeholder="Product Code / Dress Name / Size" onkeypress="handleRestockFormEnter(event, 'sanvees')">
+                <input type="text" id="sanveesRestockReason" class="input-reason" placeholder="Restock Note (e.g. Expected Monday / Batch 2)" onkeypress="handleRestockFormEnter(event, 'sanvees')">
+                <input type="number" id="sanveesRestockAmount" class="input-amount" placeholder="Amount (BDT)" onkeypress="handleRestockFormEnter(event, 'sanvees')">
+                <button class="btn add-btn" onclick="addRestockOrder('sanvees')">➕ Add Restock Order</button>
+            </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="toolbar">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="sanveesRestockSearchInput" placeholder="Search customer, phone, product code..." oninput="filterRestockOrders('sanvees')">
+            </div>
+
+            <div class="filter-chips">
+                <button class="chip active" onclick="setRestockStatusFilter('sanvees', 'all')" id="sanveesRestockFilterAll">All <span class="chip-count" id="sanveesRestockChipAll">0</span></button>
+                <button class="chip" onclick="setRestockStatusFilter('sanvees', 'awaiting')" id="sanveesRestockFilterAwaiting">⏳ Awaiting <span class="chip-count" id="sanveesRestockChipAwaiting">0</span></button>
+                <button class="chip" onclick="setRestockStatusFilter('sanvees', 'ready')" id="sanveesRestockFilterReady">📦 In Stock <span class="chip-count" id="sanveesRestockChipReady">0</span></button>
+                <button class="chip" onclick="setRestockStatusFilter('sanvees', 'sent')" id="sanveesRestockFilterSent">🚚 Sent <span class="chip-count" id="sanveesRestockChipSent">0</span></button>
+                <button class="chip" onclick="setRestockStatusFilter('sanvees', 'cancelled')" id="sanveesRestockFilterCancelled">❌ Cancelled <span class="chip-count" id="sanveesRestockChipCancelled">0</span></button>
+            </div>
+
+            <div class="action-btns">
+                <button class="action-btn export" onclick="exportRestockToCSV('sanvees')" title="Export to Excel CSV">📊 Export Excel</button>
+                <button class="action-btn print" onclick="prepareRestockPrint('sanvees')" title="Print / PDF">🖨️ Print Report</button>
+            </div>
+        </div>
+
+        <!-- Restocked Orders Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="4%">#</th>
+                        <th width="22%">Customer / Order No</th>
+                        <th width="24%">Product Code & Size</th>
+                        <th width="26%">Restock Note / Batch</th>
+                        <th width="10%">Amount (BDT)</th>
+                        <th width="14%">Status / Action</th>
+                    </tr>
+                </thead>
+                <tbody id="sanveesRestockTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="print-footer">
+            <span>Generated from Sanvee's Restock Hub</span>
+            <span id="printFooterTimestampSanveesRestock"></span>
+        </div>
+    </div>
 </div>
 
-<!-- Custom Confirmation Modal -->
+<!-- Custom Confirmation Modal for Delete -->
 <div id="customConfirmModal" class="modal-overlay">
     <div class="modal-box">
-        <h3>Delete Order?</h3>
-        <p>Are you sure you want to delete this order? This action will sync with Firebase.</p>
-        <div id="modalOrderDetails" class="modal-order-preview"></div>
+        <div class="modal-title">⚠️ Delete Confirmation</div>
+        <div class="modal-desc">
+            Are you sure you want to delete this order? This action cannot be undone.
+            <div id="modalOrderDetails" class="modal-order-preview"></div>
+        </div>
         <div class="modal-actions">
             <button class="modal-btn modal-btn-cancel" onclick="closeConfirmModal()">Cancel</button>
-            <button class="modal-btn modal-btn-confirm" id="confirmDeleteBtn">Yes, Delete</button>
+            <button class="modal-btn modal-btn-delete" id="confirmDeleteBtn">Yes, Delete</button>
         </div>
     </div>
 </div>
 
 <script>
     let deleteTarget = null;
-    let activeTab = 'tony';
+    let activeTab = 'tony'; // 'tony', 'tony-restock', 'sanvees', 'sanvees-restock'
+
     let currentFilters = {
         tony: { status: 'all', search: '' },
         sanvees: { status: 'all', search: '' }
     };
+    let currentRestockFilters = {
+        tony: { status: 'all', search: '' },
+        sanvees: { status: 'all', search: '' }
+    };
+
     let cachedOrders = {
+        tony: [],
+        sanvees: []
+    };
+    let cachedRestockOrders = {
         tony: [],
         sanvees: []
     };
@@ -1608,11 +1988,18 @@
         const todayStr = new Date().toISOString().split('T')[0];
         document.getElementById('checkDateInput').value = todayStr;
 
+        // Auto carry forward regular pending orders
         await checkAndCarryForwardPendingOrders('tony', todayStr);
         await checkAndCarryForwardPendingOrders('sanvees', todayStr);
 
+        // Auto carry forward restock waiting orders
+        await checkAndCarryForwardRestockOrders('tony', todayStr);
+        await checkAndCarryForwardRestockOrders('sanvees', todayStr);
+
         await loadOrders('tony');
         await loadOrders('sanvees');
+        await loadRestockOrders('tony');
+        await loadRestockOrders('sanvees');
     });
 
     // Theme Switcher
@@ -1666,24 +2053,44 @@
 
     function switchTab(tabName) {
         activeTab = tabName;
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-        if (tabName === 'tony') {
-            document.querySelector('.tabs button:nth-child(1)').classList.add('active');
-            document.getElementById('tab-tony').classList.add('active');
-        } else {
-            document.querySelector('.tabs button:nth-child(2)').classList.add('active');
-            document.getElementById('tab-sanvees').classList.add('active');
+        const tabMap = {
+            'tony': { btnIndex: 1, contentId: 'tab-tony' },
+            'tony-restock': { btnIndex: 2, contentId: 'tab-tony-restock' },
+            'sanvees': { btnIndex: 3, contentId: 'tab-sanvees' },
+            'sanvees-restock': { btnIndex: 4, contentId: 'tab-sanvees-restock' }
+        };
+
+        const target = tabMap[tabName];
+        if (target) {
+            document.querySelector(`.tabs button:nth-child(${target.btnIndex})`).classList.add('active');
+            document.getElementById(target.contentId).classList.add('active');
+        }
+
+        if (tabName === 'tony-restock') {
+            renderRestockTable('tony');
+        } else if (tabName === 'sanvees-restock') {
+            renderRestockTable('sanvees');
         }
     }
 
     async function onCheckingDateChange() {
         await loadOrders('tony');
         await loadOrders('sanvees');
+        await loadRestockOrders('tony');
+        await loadRestockOrders('sanvees');
         showToast('Loaded orders for selected date', 'info');
     }
 
+    async function getActiveDate() {
+        return document.getElementById('checkDateInput').value;
+    }
+
+    // =========================================================================
+    // STANDARD PENDING ORDERS LOGIC (Tab 1: Tony & Tab 3: Sanvee's)
+    // =========================================================================
     async function checkAndCarryForwardPendingOrders(type, targetDateStr) {
         let allDatesData = await window.fbLoadAllDates(type);
         if (!allDatesData) return;
@@ -1730,10 +2137,6 @@
         }
     }
 
-    async function getActiveDate() {
-        return document.getElementById('checkDateInput').value;
-    }
-
     function handleFormEnter(e, type) {
         if (e.key === 'Enter') {
             addOrder(type);
@@ -1761,7 +2164,6 @@
         }
 
         let orders = (await window.fbLoadOrders(type, selectedDate)) || [];
-        
         orders.push({ orderNo, orderReason, amount, status: 'pending' });
         await window.fbSaveOrder(type, selectedDate, orders);
 
@@ -1811,24 +2213,24 @@
             }
         });
 
-        // Update Screen Stat Cards
+        // Screen Stats
         document.getElementById(type + 'StatTotal').innerText = totalCount;
-        document.getElementById(type + 'StatPendingAmt').innerText = '৳' + pendingAmt.toLocaleString();
+        document.getElementById(type + 'StatPendingAmt').innerText = 'Tk ' + pendingAmt.toLocaleString();
         document.getElementById(type + 'StatPendingCount').innerText = `${pendingCount} orders`;
         
-        document.getElementById(type + 'StatSentAmt').innerText = '৳' + sentAmt.toLocaleString();
+        document.getElementById(type + 'StatSentAmt').innerText = 'Tk ' + sentAmt.toLocaleString();
         document.getElementById(type + 'StatSentCount').innerText = `${sentCount} orders`;
         
         document.getElementById(type + 'StatCancelledCount').innerText = `${cancelledCount} orders`;
-        document.getElementById(type + 'StatCancelledAmt').innerText = '৳' + cancelledAmt.toLocaleString();
+        document.getElementById(type + 'StatCancelledAmt').innerText = 'Tk ' + cancelledAmt.toLocaleString();
 
-        // Update Filter Chip Badges
+        // Filter Chips
         document.getElementById(type + 'ChipAll').innerText = totalCount;
         document.getElementById(type + 'ChipPending').innerText = pendingCount;
         document.getElementById(type + 'ChipSent').innerText = sentCount;
         document.getElementById(type + 'ChipCancelled').innerText = cancelledCount;
 
-        // Update Print Header Metrics
+        // Print Header Metrics
         let capType = type === 'tony' ? 'Tony' : 'Sanvees';
         let printTotalEl = document.getElementById(`print${capType}TotalCount`);
         let printPendingCountEl = document.getElementById(`print${capType}PendingCount`);
@@ -1837,8 +2239,8 @@
 
         if (printTotalEl) printTotalEl.innerText = totalCount;
         if (printPendingCountEl) printPendingCountEl.innerText = `${pendingCount} orders`;
-        if (printPendingAmtEl) printPendingAmtEl.innerText = `৳${pendingAmt.toLocaleString()}`;
-        if (printSentAmtEl) printSentAmtEl.innerText = `৳${sentAmt.toLocaleString()}`;
+        if (printPendingAmtEl) printPendingAmtEl.innerText = `Tk ${pendingAmt.toLocaleString()}`;
+        if (printSentAmtEl) printSentAmtEl.innerText = `Tk ${sentAmt.toLocaleString()}`;
     }
 
     function setStatusFilter(type, status) {
@@ -1938,7 +2340,7 @@
                 <!-- Amount: Screen Input + Print Full Text -->
                 <td>
                     <input type="number" class="table-amount-input screen-only-input" value="${orderAmount}" onchange="updateOrderFieldInline('${type}', ${originalIndex}, 'amount', this.value)">
-                    <div class="print-cell-text center amount">৳${orderAmount.toLocaleString()}</div>
+                    <div class="print-cell-text center amount">Tk ${orderAmount.toLocaleString()}</div>
                 </td>
                 
                 <!-- Status: Screen Dropdown + Print Colorful Badge -->
@@ -1959,15 +2361,15 @@
             tbody.innerHTML += row;
         });
 
-        // Summary Rows with Color in Print & Screen
+        // Summary Rows
         let totalRows = `<tr class="total-row">
             <td colspan="3" style="text-align: right;"><b>Filtered Pending Total:</b></td>
-            <td id="${type}PendingTotalDisplay" class="print-pending-total" style="color: var(--warning-text); font-weight: 800;">৳${totalPendingInView.toLocaleString()}</td>
+            <td id="${type}PendingTotalDisplay" class="print-pending-total" style="color: var(--warning-text); font-weight: 800;">Tk ${totalPendingInView.toLocaleString()}</td>
             <td></td>
         </tr>
         <tr class="total-row">
             <td colspan="3" style="text-align: right;"><b>Filtered Parcel Sent Total:</b></td>
-            <td id="${type}SentTotalDisplay" class="print-sent-total" style="color: var(--success-text); font-weight: 800;">৳${totalSentInView.toLocaleString()}</td>
+            <td id="${type}SentTotalDisplay" class="print-sent-total" style="color: var(--success-text); font-weight: 800;">Tk ${totalSentInView.toLocaleString()}</td>
             <td></td>
         </tr>`;
         tbody.innerHTML += totalRows;
@@ -2045,13 +2447,14 @@
         let orders = cachedOrders[type];
         if (!orders || !orders[originalIndex]) return;
 
-        if (field === 'amount') {
-            orders[originalIndex].amount = parseFloat(value) || 0;
-        } else {
-            orders[originalIndex][field] = value.trim();
-        }
+        let oldValue = orders[originalIndex][field];
+        let newValue = field === 'amount' ? (parseFloat(value) || 0) : value.trim();
 
+        if (oldValue === newValue) return;
+
+        orders[originalIndex][field] = newValue;
         await window.fbSaveOrder(type, selectedDate, orders);
+
         showToast(`Order updated`, "success");
         updateDashboardStats(type, orders);
         renderFilteredTable(type);
@@ -2062,7 +2465,12 @@
         let orders = cachedOrders[type];
         if (!orders || !orders[originalIndex]) return;
 
-        orders[originalIndex].status = selectElement.value;
+        let oldStatus = orders[originalIndex].status || 'pending';
+        let newStatus = selectElement.value;
+
+        if (oldStatus === newStatus) return;
+
+        orders[originalIndex].status = newStatus;
         await window.fbSaveOrder(type, selectedDate, orders);
         
         selectElement.className = 'status-select status-' + selectElement.value;
@@ -2074,13 +2482,13 @@
 
     function promptDelete(type, originalIndex) {
         let order = cachedOrders[type][originalIndex];
-        deleteTarget = { type, originalIndex };
+        deleteTarget = { isRestock: false, brand: type, originalIndex };
 
         const preview = document.getElementById('modalOrderDetails');
         if (order) {
             preview.innerHTML = `<strong>Order / Customer:</strong> ${escapeHtml(order.orderNo)}<br>
-                                 <strong>Pending Reason:</strong> ${escapeHtml(order.orderReason)}<br>
-                                 <strong>Amount:</strong> ৳${(order.amount || 0).toLocaleString()}`;
+                                 <strong>Reason:</strong> ${escapeHtml(order.orderReason)}<br>
+                                 <strong>Amount:</strong> Tk ${(order.amount || 0).toLocaleString()}`;
         }
         document.getElementById('customConfirmModal').style.display = 'flex';
     }
@@ -2092,20 +2500,421 @@
 
     document.getElementById('confirmDeleteBtn').onclick = async function() {
         if (!deleteTarget) return;
-        let { type, originalIndex } = deleteTarget;
-        
+
+        let { isRestock, brand, originalIndex } = deleteTarget;
         let selectedDate = await getActiveDate();
-        let orders = cachedOrders[type];
-        orders.splice(originalIndex, 1);
-        
-        await window.fbSaveOrder(type, selectedDate, orders);
-        showToast("Order deleted", "error");
-        
-        closeConfirmModal();
-        await loadOrders(type);
+
+        if (isRestock) {
+            let orders = cachedRestockOrders[brand];
+            if (orders && orders[originalIndex]) {
+                orders.splice(originalIndex, 1);
+                await window.fbSaveRestockOrders(brand, selectedDate, orders);
+                showToast("Restocked order deleted", "error");
+                closeConfirmModal();
+                await loadRestockOrders(brand);
+            }
+        } else {
+            let orders = cachedOrders[brand];
+            if (orders && orders[originalIndex]) {
+                orders.splice(originalIndex, 1);
+                await window.fbSaveOrder(brand, selectedDate, orders);
+                showToast("Order deleted", "error");
+                closeConfirmModal();
+                await loadOrders(brand);
+            }
+        }
     };
 
-    // CSV / Excel Export
+    // =========================================================================
+    // RESTOCKED PRODUCT ORDERS LOGIC (Tab 2: Tony Restock & Tab 4: Sanvee's Restock)
+    // =========================================================================
+    function handleRestockFormEnter(e, brand) {
+        if (e.key === 'Enter') {
+            addRestockOrder(brand);
+        }
+    }
+
+    async function checkAndCarryForwardRestockOrders(brand, targetDateStr) {
+        let allDatesData = await window.fbLoadAllRestockDates(brand);
+        if (!allDatesData) return;
+
+        let targetDateOrders = allDatesData[targetDateStr] || [];
+        let pastDates = Object.keys(allDatesData).filter(d => d < targetDateStr).sort();
+        
+        let orderMap = new Map();
+        targetDateOrders.forEach(o => orderMap.set(o.orderNo + '_' + (o.productName || ''), o));
+
+        let updated = false;
+
+        for (let pDate of pastDates) {
+            let dayOrders = allDatesData[pDate] || [];
+            for (let order of dayOrders) {
+                let key = order.orderNo + '_' + (order.productName || '');
+                let isResolvedLater = false;
+                
+                for (let checkDate of [...pastDates.filter(d => d > pDate), targetDateStr]) {
+                    let checkOrders = allDatesData[checkDate] || [];
+                    let foundMatch = checkOrders.find(o => (o.orderNo + '_' + (o.productName || '')) === key);
+                    if (foundMatch && (foundMatch.status === 'sent' || foundMatch.status === 'cancelled')) {
+                        isResolvedLater = true;
+                        break;
+                    }
+                }
+
+                // If awaiting restock or ready in stock and not sent later, carry forward!
+                if ((order.status === 'awaiting' || order.status === 'ready') && !isResolvedLater) {
+                    if (!orderMap.has(key)) {
+                        orderMap.set(key, { 
+                            orderNo: order.orderNo, 
+                            productName: order.productName || '',
+                            orderReason: order.orderReason || '',
+                            amount: order.amount !== undefined ? order.amount : 0,
+                            status: order.status 
+                        });
+                        updated = true;
+                    }
+                }
+            }
+        }
+
+        if (updated || targetDateOrders.length !== orderMap.size) {
+            let finalOrders = Array.from(orderMap.values());
+            await window.fbSaveRestockOrders(brand, targetDateStr, finalOrders);
+        }
+    }
+
+    async function loadRestockOrders(brand) {
+        let selectedDate = await getActiveDate();
+        if (!selectedDate) return;
+
+        await checkAndCarryForwardRestockOrders(brand, selectedDate);
+
+        let orders = (await window.fbLoadRestockOrders(brand, selectedDate)) || [];
+        cachedRestockOrders[brand] = orders;
+
+        updateRestockDashboardStats(brand, orders);
+        renderRestockTable(brand);
+    }
+
+    async function addRestockOrder(brand) {
+        let cap = brand === 'tony' ? 'tony' : 'sanvees';
+        let orderNoInput = document.getElementById(cap + 'RestockOrderNo');
+        let productInput = document.getElementById(cap + 'RestockProductName');
+        let reasonInput = document.getElementById(cap + 'RestockReason');
+        let amountInput = document.getElementById(cap + 'RestockAmount');
+
+        let orderNo = orderNoInput.value.trim();
+        let productName = productInput.value.trim();
+        let orderReason = reasonInput.value.trim();
+        let amount = parseFloat(amountInput.value) || 0;
+        let selectedDate = await getActiveDate();
+
+        if (!selectedDate) {
+            showToast("Please select a date first!", "error");
+            return;
+        }
+
+        if (orderNo === "" || productName === "") {
+            showToast("Please enter Customer / Order No and Product Code / Name!", "error");
+            return;
+        }
+
+        let orders = (await window.fbLoadRestockOrders(brand, selectedDate)) || [];
+        orders.push({ 
+            orderNo, 
+            productName, 
+            orderReason: orderReason || 'Awaiting Restock', 
+            amount, 
+            status: 'awaiting' 
+        });
+
+        await window.fbSaveRestockOrders(brand, selectedDate, orders);
+
+        orderNoInput.value = "";
+        productInput.value = "";
+        reasonInput.value = "";
+        amountInput.value = "";
+
+        showToast("Restocked order recorded!", "success");
+        await loadRestockOrders(brand);
+    }
+
+    function updateRestockDashboardStats(brand, orders) {
+        let totalCount = orders.length;
+        let awaitingCount = 0, awaitingAmt = 0;
+        let readyCount = 0, readyAmt = 0;
+        let sentCount = 0, sentAmt = 0;
+        let cancelledCount = 0;
+
+        orders.forEach(o => {
+            let amt = parseFloat(o.amount) || 0;
+            let st = o.status || 'awaiting';
+
+            if (st === 'awaiting') {
+                awaitingCount++;
+                awaitingAmt += amt;
+            } else if (st === 'ready') {
+                readyCount++;
+                readyAmt += amt;
+            } else if (st === 'sent') {
+                sentCount++;
+                sentAmt += amt;
+            } else if (st === 'cancelled') {
+                cancelledCount++;
+            }
+        });
+
+        let prefix = brand === 'tony' ? 'tony' : 'sanvees';
+        let cap = brand === 'tony' ? 'Tony' : 'Sanvees';
+
+        // Screen Stats
+        document.getElementById(`${prefix}RestockStatTotal`).innerText = totalCount;
+        document.getElementById(`${prefix}RestockStatAwaitingAmt`).innerText = 'Tk ' + awaitingAmt.toLocaleString();
+        document.getElementById(`${prefix}RestockStatAwaitingCount`).innerText = `${awaitingCount} orders`;
+        
+        document.getElementById(`${prefix}RestockStatReadyAmt`).innerText = 'Tk ' + readyAmt.toLocaleString();
+        document.getElementById(`${prefix}RestockStatReadyCount`).innerText = `${readyCount} orders`;
+
+        document.getElementById(`${prefix}RestockStatSentAmt`).innerText = 'Tk ' + sentAmt.toLocaleString();
+        document.getElementById(`${prefix}RestockStatSentCount`).innerText = `${sentCount} orders`;
+
+        // Chips
+        document.getElementById(`${prefix}RestockChipAll`).innerText = totalCount;
+        document.getElementById(`${prefix}RestockChipAwaiting`).innerText = awaitingCount;
+        document.getElementById(`${prefix}RestockChipReady`).innerText = readyCount;
+        document.getElementById(`${prefix}RestockChipSent`).innerText = sentCount;
+        document.getElementById(`${prefix}RestockChipCancelled`).innerText = cancelledCount;
+
+        // Print Header Metrics
+        let printTotal = document.getElementById(`print${cap}RestockTotalCount`);
+        let printAwaiting = document.getElementById(`print${cap}RestockAwaitingAmt`);
+        let printReady = document.getElementById(`print${cap}RestockReadyAmt`);
+        let printSent = document.getElementById(`print${cap}RestockSentAmt`);
+
+        if (printTotal) printTotal.innerText = totalCount;
+        if (printAwaiting) printAwaiting.innerText = `Tk ${awaitingAmt.toLocaleString()}`;
+        if (printReady) printReady.innerText = `Tk ${readyAmt.toLocaleString()}`;
+        if (printSent) printSent.innerText = `Tk ${sentAmt.toLocaleString()}`;
+    }
+
+    function setRestockStatusFilter(brand, status) {
+        currentRestockFilters[brand].status = status;
+
+        const chips = ['all', 'awaiting', 'ready', 'sent', 'cancelled'];
+        let prefix = brand === 'tony' ? 'tony' : 'sanvees';
+
+        chips.forEach(c => {
+            const btn = document.getElementById(`${prefix}RestockFilter${c.charAt(0).toUpperCase() + c.slice(1)}`);
+            if (btn) {
+                if (c === status) btn.classList.add('active');
+                else btn.classList.remove('active');
+            }
+        });
+
+        renderRestockTable(brand);
+    }
+
+    function filterRestockOrders(brand) {
+        let prefix = brand === 'tony' ? 'tony' : 'sanvees';
+        const query = document.getElementById(`${prefix}RestockSearchInput`).value.toLowerCase().trim();
+        currentRestockFilters[brand].search = query;
+        renderRestockTable(brand);
+    }
+
+    function renderRestockTable(brand) {
+        let orders = cachedRestockOrders[brand] || [];
+        let prefix = brand === 'tony' ? 'tony' : 'sanvees';
+        let tbody = document.getElementById(`${prefix}RestockTableBody`);
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        let filterStatus = currentRestockFilters[brand].status;
+        let searchQuery = currentRestockFilters[brand].search;
+
+        let filteredOrders = orders.map((order, originalIndex) => ({ order, originalIndex }))
+            .filter(({ order }) => {
+                let st = order.status || 'awaiting';
+                if (filterStatus !== 'all' && st !== filterStatus) {
+                    return false;
+                }
+
+                if (searchQuery) {
+                    let orderMatch = (order.orderNo || '').toLowerCase().includes(searchQuery);
+                    let productMatch = (order.productName || '').toLowerCase().includes(searchQuery);
+                    let reasonMatch = (order.orderReason || '').toLowerCase().includes(searchQuery);
+                    let amountMatch = String(order.amount || '').includes(searchQuery);
+                    if (!orderMatch && !productMatch && !reasonMatch && !amountMatch) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+        if (filteredOrders.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--text-muted); padding: 40px 16px; font-weight: 600;">No restocked orders found for this selection.</td></tr>`;
+            return;
+        }
+
+        let totalAwaitingInView = 0;
+        let totalSentInView = 0;
+
+        filteredOrders.forEach(({ order, originalIndex }, displayIndex) => {
+            let orderAmount = parseFloat(order.amount) || 0;
+            let currentStatus = order.status || 'awaiting';
+
+            if (currentStatus === 'awaiting' || currentStatus === 'ready') {
+                totalAwaitingInView += orderAmount;
+            } else if (currentStatus === 'sent') {
+                totalSentInView += orderAmount;
+            }
+
+            let statusClass = 'status-' + currentStatus;
+            let statusBadgeText = currentStatus === 'awaiting' ? '⏳ Awaiting Restock' : 
+                                 (currentStatus === 'ready' ? '📦 In Stock' : 
+                                 (currentStatus === 'sent' ? '🚚 Parcel Sent' : '❌ Cancelled'));
+
+            let quickShipBtnHtml = currentStatus !== 'sent' ? `
+                <button class="quick-ship-btn screen-only-input" onclick="quickShipRestock('${brand}', ${originalIndex})" title="Mark parcel as Sent">
+                    🚀 Send
+                </button>
+            ` : '';
+
+            let row = `<tr>
+                <td><b>${displayIndex + 1}</b></td>
+                
+                <!-- Customer / Phone -->
+                <td>
+                    <div class="cell-content-box order-cell-box">
+                        <input type="text" class="inline-edit-input table-order-input screen-only-input" value="${escapeHtml(order.orderNo || '')}" onchange="updateRestockFieldInline('${brand}', ${originalIndex}, 'orderNo', this.value)" title="Click to edit Customer Phone/Name">
+                        <button type="button" class="copy-btn screen-only-input" onclick="copyOrderInput(this)" title="Copy number">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                        <div class="print-cell-text bold">${escapeHtml(order.orderNo || '')}</div>
+                    </div>
+                </td>
+                
+                <!-- Product Code / Name / Size -->
+                <td>
+                    <div class="cell-content-box">
+                        <input type="text" class="inline-edit-input table-product-input screen-only-input" value="${escapeHtml(order.productName || '')}" onchange="updateRestockFieldInline('${brand}', ${originalIndex}, 'productName', this.value)" placeholder="e.g. Kurti Red 38" title="Click to edit Product Code/Size">
+                        <div class="print-cell-text bold" style="color: #4f46e5;">${escapeHtml(order.productName || '')}</div>
+                    </div>
+                </td>
+
+                <!-- Restock Note / Details -->
+                <td>
+                    <div class="cell-content-box">
+                        <input type="text" class="inline-edit-input table-reason-input screen-only-input" value="${escapeHtml(order.orderReason || '')}" onchange="updateRestockFieldInline('${brand}', ${originalIndex}, 'orderReason', this.value)" placeholder="e.g. Fabric dyeing / Expected Monday" title="Click to edit Restock Note">
+                        <div class="print-cell-text">${escapeHtml(order.orderReason || '')}</div>
+                    </div>
+                </td>
+                
+                <!-- Amount -->
+                <td>
+                    <input type="number" class="table-amount-input screen-only-input" value="${orderAmount}" onchange="updateRestockFieldInline('${brand}', ${originalIndex}, 'amount', this.value)">
+                    <div class="print-cell-text center amount">Tk ${orderAmount.toLocaleString()}</div>
+                </td>
+                
+                <!-- Status & Actions -->
+                <td>
+                    <div class="screen-only-input" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <select class="status-select ${statusClass}" onchange="updateRestockStatus('${brand}', ${originalIndex}, this)">
+                            <option value="awaiting" ${currentStatus === 'awaiting' ? 'selected' : ''}>⏳ Awaiting Restock</option>
+                            <option value="ready" ${currentStatus === 'ready' ? 'selected' : ''}>📦 In Stock / Ready</option>
+                            <option value="sent" ${currentStatus === 'sent' ? 'selected' : ''}>🚚 Parcel Sent</option>
+                            <option value="cancelled" ${currentStatus === 'cancelled' ? 'selected' : ''}>❌ Cancelled</option>
+                        </select>
+                        ${quickShipBtnHtml}
+                        <button class="delete-btn" onclick="promptDeleteRestock('${brand}', ${originalIndex})" title="Delete Order">✕</button>
+                    </div>
+                    <div class="print-cell-text center">
+                        <span class="print-status-badge ${statusClass}">${statusBadgeText}</span>
+                    </div>
+                </td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+
+        // Summary Rows
+        let totalRows = `<tr class="total-row">
+            <td colspan="4" style="text-align: right;"><b>Filtered Waiting/Ready Total:</b></td>
+            <td class="print-pending-total" style="color: #9333ea; font-weight: 800;">Tk ${totalAwaitingInView.toLocaleString()}</td>
+            <td></td>
+        </tr>
+        <tr class="total-row">
+            <td colspan="4" style="text-align: right;"><b>Filtered Parcel Sent Total:</b></td>
+            <td class="print-sent-total" style="color: var(--success-text); font-weight: 800;">Tk ${totalSentInView.toLocaleString()}</td>
+            <td></td>
+        </tr>`;
+        tbody.innerHTML += totalRows;
+    }
+
+    async function updateRestockFieldInline(brand, originalIndex, field, value) {
+        let selectedDate = await getActiveDate();
+        let orders = cachedRestockOrders[brand];
+        if (!orders || !orders[originalIndex]) return;
+
+        let oldValue = orders[originalIndex][field];
+        let newValue = field === 'amount' ? (parseFloat(value) || 0) : value.trim();
+
+        if (oldValue === newValue) return;
+
+        orders[originalIndex][field] = newValue;
+        await window.fbSaveRestockOrders(brand, selectedDate, orders);
+
+        showToast(`Restock order updated`, "success");
+        updateRestockDashboardStats(brand, orders);
+        renderRestockTable(brand);
+    }
+
+    async function updateRestockStatus(brand, originalIndex, selectElement) {
+        let selectedDate = await getActiveDate();
+        let orders = cachedRestockOrders[brand];
+        if (!orders || !orders[originalIndex]) return;
+
+        let newStatus = selectElement.value;
+        orders[originalIndex].status = newStatus;
+        await window.fbSaveRestockOrders(brand, selectedDate, orders);
+
+        selectElement.className = 'status-select status-' + newStatus;
+        showToast(`Status updated to ${newStatus.toUpperCase()}`, "info");
+
+        updateRestockDashboardStats(brand, orders);
+        renderRestockTable(brand);
+    }
+
+    async function quickShipRestock(brand, originalIndex) {
+        let selectedDate = await getActiveDate();
+        let orders = cachedRestockOrders[brand];
+        if (!orders || !orders[originalIndex]) return;
+
+        orders[originalIndex].status = 'sent';
+        await window.fbSaveRestockOrders(brand, selectedDate, orders);
+
+        showToast(`Product restocked & parcel marked as SENT! 🚀`, "success");
+        updateRestockDashboardStats(brand, orders);
+        renderRestockTable(brand);
+    }
+
+    function promptDeleteRestock(brand, originalIndex) {
+        let order = cachedRestockOrders[brand][originalIndex];
+        deleteTarget = { isRestock: true, brand, originalIndex };
+
+        const preview = document.getElementById('modalOrderDetails');
+        if (order) {
+            preview.innerHTML = `<strong>Customer / Phone:</strong> ${escapeHtml(order.orderNo)}<br>
+                                 <strong>Product:</strong> ${escapeHtml(order.productName)}<br>
+                                 <strong>Restock Note:</strong> ${escapeHtml(order.orderReason)}<br>
+                                 <strong>Amount:</strong> Tk ${(order.amount || 0).toLocaleString()}`;
+        }
+        document.getElementById('customConfirmModal').style.display = 'flex';
+    }
+
+    // CSV / Excel Export for Standard Orders
     async function exportToCSV(type) {
         let orders = cachedOrders[type] || [];
         let selectedDate = await getActiveDate();
@@ -2116,10 +2925,10 @@
             return;
         }
 
-        let csvContent = "\uFEFF"; // UTF-8 BOM for Excel Bengali/English support
+        let csvContent = "\uFEFF"; // UTF-8 BOM
         csvContent += `Brand,${brandName}\n`;
         csvContent += `Date,${selectedDate}\n\n`;
-        csvContent += "SL,Order Number / Details,Pending Reason,Amount (BDT),Status\n";
+        csvContent += "SL,Order Number / Customer,Pending Reason,Amount (BDT),Status\n";
 
         let pendingSum = 0;
         let sentSum = 0;
@@ -2150,15 +2959,78 @@
         showToast("Excel CSV exported successfully!", "success");
     }
 
+    // CSV / Excel Export for Restocked Orders
+    async function exportRestockToCSV(brand) {
+        let orders = cachedRestockOrders[brand] || [];
+        let selectedDate = await getActiveDate();
+        let brandName = brand === 'tony' ? "Sanvee's by Tony (Restocked Orders)" : "Sanvee's (Restocked Orders)";
+
+        if (orders.length === 0) {
+            showToast("No restock orders to export!", "error");
+            return;
+        }
+
+        let csvContent = "\uFEFF";
+        csvContent += `Brand,${brandName}\n`;
+        csvContent += `Date,${selectedDate}\n\n`;
+        csvContent += "SL,Customer / Order No,Product Name & Code,Restock Note,Amount (BDT),Status\n";
+
+        let waitingSum = 0;
+        let sentSum = 0;
+
+        orders.forEach((o, i) => {
+            let amt = parseFloat(o.amount) || 0;
+            let st = o.status || 'awaiting';
+            if (st === 'awaiting' || st === 'ready') waitingSum += amt;
+            if (st === 'sent') sentSum += amt;
+
+            let safeOrder = `"${(o.orderNo || '').replace(/"/g, '""')}"`;
+            let safeProduct = `"${(o.productName || '').replace(/"/g, '""')}"`;
+            let safeReason = `"${(o.orderReason || '').replace(/"/g, '""')}"`;
+            csvContent += `${i + 1},${safeOrder},${safeProduct},${safeReason},${amt},${st.toUpperCase()}\n`;
+        });
+
+        csvContent += `\n,,,,Total Awaiting/Ready Amount:,${waitingSum}\n`;
+        csvContent += `,,,,Total Parcel Sent Amount:,${sentSum}\n`;
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `${brand}_restock_orders_${selectedDate}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showToast("Restocked orders Excel CSV exported!", "success");
+    }
+
     function preparePrint(type) {
         let selectedDate = document.getElementById('checkDateInput').value;
-        let brandName = type === 'tony' ? "Sanvee's by Tony" : "Sanvee's";
-        let subtitleEl = document.getElementById(type === 'tony' ? 'printSubtitleTony' : 'printSubtitleSanvees');
-        let timestampEl = document.getElementById(type === 'tony' ? 'printFooterTimestampTony' : 'printFooterTimestampSanvees');
+        let cap = type === 'tony' ? 'Tony' : 'Sanvees';
+        let dateEl = document.getElementById(`printDocDate${cap}`);
+        let timestampEl = document.getElementById(`printFooterTimestamp${cap}`);
 
-        if (selectedDate) {
+        if (selectedDate && dateEl) {
             let formattedDate = new Date(selectedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-            subtitleEl.innerText = `Pending Orders Statement | Date: ${formattedDate}`;
+            dateEl.innerText = `Date: ${formattedDate}`;
+        }
+        
+        let now = new Date().toLocaleString();
+        if (timestampEl) timestampEl.innerText = `Printed on: ${now}`;
+
+        window.print();
+    }
+
+    function prepareRestockPrint(brand) {
+        let selectedDate = document.getElementById('checkDateInput').value;
+        let cap = brand === 'tony' ? 'TonyRestock' : 'SanveesRestock';
+        let dateEl = document.getElementById(`printDocDate${cap}`);
+        let timestampEl = document.getElementById(`printFooterTimestamp${cap}`);
+
+        if (selectedDate && dateEl) {
+            let formattedDate = new Date(selectedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+            dateEl.innerText = `Date: ${formattedDate}`;
         }
         
         let now = new Date().toLocaleString();
