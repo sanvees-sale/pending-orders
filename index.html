@@ -1074,6 +1074,28 @@
         .status-awaiting { background: #fdf4ff; color: #9333ea; border-color: #f0abfc; }
         .status-ready { background: #eff6ff; color: #0284c7; border-color: #bfdbfe; }
 
+        /* Admin Security & Role-Based Delete Control */
+        body:not(.admin-mode) .admin-only-btn,
+        body:not(.admin-mode) .admin-only-feature {
+            display: none !important;
+        }
+
+        .admin-toggle-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        body.admin-mode .admin-toggle-btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+            color: #ffffff !important;
+            border-color: #4338ca !important;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important;
+        }
+
         .delete-btn {
             background: transparent;
             border: none;
@@ -1668,9 +1690,14 @@
                 <span>💾</span> <span>Backup</span>
             </button>
 
-            <!-- Trash / Recycle Bin Button -->
-            <button class="header-btn" onclick="openTrashModal()" title="Recycle Bin (View & Restore Deleted Orders)">
+            <!-- Trash / Recycle Bin Button (Admin Only) -->
+            <button class="header-btn admin-only-btn" onclick="openTrashModal()" title="Recycle Bin (View & Restore Deleted Orders)">
                 <span>🗑️</span> <span>Trash</span> <span class="trash-badge-count" id="trashCountBadge" style="display:none;">0</span>
+            </button>
+
+            <!-- Admin Access Button -->
+            <button class="header-btn admin-toggle-btn" onclick="openAdminModal()" id="adminAuthBtn" title="Admin Security & Delete Permissions">
+                <span id="adminBtnIcon">🔐</span> <span id="adminBtnText">Admin Access</span>
             </button>
 
             <!-- Date Selector -->
@@ -2412,7 +2439,7 @@
         </div>
 
         <div class="modal-actions" style="justify-content: space-between;">
-            <button class="modal-btn modal-btn-delete" onclick="confirmClearAllTrash()">🗑️ Empty Trash</button>
+            <button class="modal-btn modal-btn-delete admin-only-btn" onclick="confirmClearAllTrash()">🗑️ Empty Trash</button>
             <button class="modal-btn modal-btn-cancel" onclick="closeTrashModal()">Close</button>
         </div>
     </div>
@@ -2429,6 +2456,58 @@
         <div class="modal-actions">
             <button class="modal-btn modal-btn-cancel" onclick="closeConfirmModal()">Cancel</button>
             <button class="modal-btn modal-btn-delete" id="confirmDeleteBtn">Move to Trash</button>
+        </div>
+    </div>
+</div>
+
+<!-- 5. Admin Authentication & Role Control Modal -->
+<div id="adminAuthModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 440px;">
+        <div class="modal-header">
+            <div class="modal-title" id="adminModalTitle">🔐 Admin Access</div>
+            <button class="modal-close-btn" onclick="closeAdminModal()" title="Close">✕</button>
+        </div>
+
+        <!-- Login Section -->
+        <div id="adminLoginSection">
+            <div class="modal-desc" style="margin-bottom: 16px; font-size: 13.5px; line-height: 1.5;">
+                Only authenticated Admins can delete orders, empty the recycle bin, or purge records. Enter Master Admin PIN:
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 6px; color: var(--text-main);">Admin PIN / Password:</label>
+                <div style="position: relative; display: flex; align-items: center;">
+                    <input type="password" id="adminPinInput" class="table-order-input" style="width: 100%; padding: 11px 14px; font-size: 16px; border-radius: 10px; letter-spacing: 2px; text-align: center;" placeholder="Enter PIN (Default: 2026)" onkeydown="if(event.key==='Enter') verifyAdminPin()">
+                </div>
+                <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 6px; text-align: center;">Default PIN is: <b>2026</b> (you can change it after logging in)</div>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button class="modal-btn modal-btn-cancel" onclick="closeAdminModal()">Cancel</button>
+                <button class="modal-btn" style="background: var(--primary-grad); color: white; font-weight: 700;" onclick="verifyAdminPin()">🔓 Unlock Admin</button>
+            </div>
+        </div>
+
+        <!-- Active Admin Control Section -->
+        <div id="adminActiveSection" style="display:none;">
+            <div style="text-align: center; padding: 10px 0 18px 0;">
+                <div style="font-size: 42px; margin-bottom: 6px;">👑</div>
+                <div style="font-size: 17px; font-weight: 800; color: var(--primary);">Admin Mode is Active</div>
+                <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">You have full permissions to delete and manage all database records.</div>
+            </div>
+
+            <div style="background: var(--card-sub-bg); border-radius: 12px; padding: 14px; margin-bottom: 18px; border: 1px solid var(--border);">
+                <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text-main);">🔑 Change Admin PIN</div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="password" id="newAdminPinInput" placeholder="Enter New PIN (min 4 digits)" class="table-order-input" style="flex:1; padding: 8px 12px; font-size: 13px; border-radius: 8px;">
+                    <button class="modal-btn" style="background: var(--primary); color: white; padding: 8px 14px; font-size: 12px; font-weight: 700;" onclick="changeAdminPin()">Save PIN</button>
+                </div>
+            </div>
+
+            <div class="modal-actions" style="justify-content: space-between;">
+                <button class="modal-btn modal-btn-delete" onclick="lockAdminMode()">🔒 Lock / Exit Admin</button>
+                <button class="modal-btn modal-btn-cancel" onclick="closeAdminModal()">Close</button>
+            </div>
         </div>
     </div>
 </div>
@@ -2565,10 +2644,111 @@
     }
 
     // =========================================================================
+    // ADMIN AUTHENTICATION & DELETE PROTECTION SYSTEM
+    // =========================================================================
+    const DEFAULT_ADMIN_PIN = "2026";
+
+    function getStoredAdminPin() {
+        return localStorage.getItem('sanvees_admin_pin') || DEFAULT_ADMIN_PIN;
+    }
+
+    function isAdminLoggedIn() {
+        return sessionStorage.getItem('sanvees_admin_auth') === 'true' || localStorage.getItem('sanvees_admin_auth_persist') === 'true';
+    }
+
+    function updateAdminUI() {
+        const isAdmin = isAdminLoggedIn();
+        const icon = document.getElementById('adminBtnIcon');
+        const text = document.getElementById('adminBtnText');
+        const btn = document.getElementById('adminAuthBtn');
+
+        if (isAdmin) {
+            document.body.classList.add('admin-mode');
+            if (icon) icon.innerText = '👑';
+            if (text) text.innerText = 'Admin Active';
+            if (btn) btn.title = 'Admin Mode is Active (Click to Manage/Lock)';
+        } else {
+            document.body.classList.remove('admin-mode');
+            if (icon) icon.innerText = '🔐';
+            if (text) text.innerText = 'Admin Access';
+            if (btn) btn.title = 'Click to authenticate as Admin for delete permissions';
+        }
+    }
+
+    function openAdminModal() {
+        const modal = document.getElementById('adminAuthModal');
+        if (!modal) return;
+        modal.style.display = 'flex';
+
+        const loginSec = document.getElementById('adminLoginSection');
+        const activeSec = document.getElementById('adminActiveSection');
+        const pinInput = document.getElementById('adminPinInput');
+
+        if (isAdminLoggedIn()) {
+            loginSec.style.display = 'none';
+            activeSec.style.display = 'block';
+            document.getElementById('adminModalTitle').innerText = '👑 Admin Dashboard';
+        } else {
+            loginSec.style.display = 'block';
+            activeSec.style.display = 'none';
+            document.getElementById('adminModalTitle').innerText = '🔐 Admin Access';
+            if (pinInput) {
+                pinInput.value = '';
+                setTimeout(() => pinInput.focus(), 150);
+            }
+        }
+    }
+
+    function closeAdminModal() {
+        const modal = document.getElementById('adminAuthModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function verifyAdminPin() {
+        const input = document.getElementById('adminPinInput').value.trim();
+        const correctPin = getStoredAdminPin();
+
+        if (input === correctPin) {
+            sessionStorage.setItem('sanvees_admin_auth', 'true');
+            localStorage.setItem('sanvees_admin_auth_persist', 'true');
+            updateAdminUI();
+            closeAdminModal();
+            showToast('👑 Welcome Admin! Delete and data management permissions active.', 'success');
+        } else {
+            showToast('❌ Incorrect Admin PIN! Access denied.', 'error');
+            const pinInput = document.getElementById('adminPinInput');
+            if (pinInput) {
+                pinInput.value = '';
+                pinInput.focus();
+            }
+        }
+    }
+
+    function lockAdminMode() {
+        sessionStorage.removeItem('sanvees_admin_auth');
+        localStorage.removeItem('sanvees_admin_auth_persist');
+        updateAdminUI();
+        closeAdminModal();
+        showToast('🔒 Admin Mode locked. Delete buttons are now hidden.', 'info');
+    }
+
+    function changeAdminPin() {
+        const newPin = document.getElementById('newAdminPinInput').value.trim();
+        if (!newPin || newPin.length < 4) {
+            showToast('Please enter a PIN with at least 4 characters/digits!', 'error');
+            return;
+        }
+        localStorage.setItem('sanvees_admin_pin', newPin);
+        document.getElementById('newAdminPinInput').value = '';
+        showToast('✅ Admin PIN updated successfully! Remember your new PIN.', 'success');
+    }
+
+    // =========================================================================
     // APP INITIALIZATION
     // =========================================================================
     document.addEventListener("DOMContentLoaded", async () => {
         initTheme();
+        updateAdminUI();
 
         const todayStr = new Date().toISOString().split('T')[0];
         document.getElementById('checkDateInput').value = todayStr;
@@ -2598,6 +2778,7 @@
                 closeBackupModal();
                 closeTrashModal();
                 closeConfirmModal();
+                closeAdminModal();
             }
         });
     });
@@ -2998,7 +3179,7 @@
                             <option value="sent" ${currentStatus === 'sent' ? 'selected' : ''}>🚚 Parcel Sent</option>
                             <option value="cancelled" ${currentStatus === 'cancelled' ? 'selected' : ''}>❌ Cancelled</option>
                         </select>
-                        <button class="delete-btn" onclick="promptDelete('${type}', ${originalIndex})" title="Move to Recycle Bin">✕</button>
+                        <button class="delete-btn admin-only-btn" onclick="promptDelete('${type}', ${originalIndex})" title="Move to Recycle Bin">✕</button>
                     </div>
                     <div class="print-cell-text center">
                         <span class="print-status-badge ${statusClass}">${statusBadgeText}</span>
@@ -3133,6 +3314,12 @@
     }
 
     function promptDelete(type, originalIndex) {
+        if (!isAdminLoggedIn()) {
+            showToast("⚠️ Admin authentication required to delete orders!", "warning");
+            openAdminModal();
+            return;
+        }
+
         let order = cachedOrders[type][originalIndex];
         deleteTarget = { isRestock: false, brand: type, originalIndex };
 
@@ -3151,6 +3338,13 @@
     }
 
     document.getElementById('confirmDeleteBtn').onclick = async function() {
+        if (!isAdminLoggedIn()) {
+            showToast("⚠️ Admin authentication required to delete orders!", "warning");
+            closeConfirmModal();
+            openAdminModal();
+            return;
+        }
+
         if (!deleteTarget) return;
 
         let { isRestock, brand, originalIndex } = deleteTarget;
@@ -3531,7 +3725,7 @@
                             <option value="cancelled" ${currentStatus === 'cancelled' ? 'selected' : ''}>❌ Cancelled</option>
                         </select>
                         ${currentStatus !== 'sent' ? `<button class="quick-ship-btn" onclick="quickShipRestock('${brand}', ${originalIndex})" title="Restocked! Mark as Sent">🚀 Send</button>` : ''}
-                        <button class="delete-btn" onclick="promptDeleteRestock('${brand}', ${originalIndex})" title="Move to Recycle Bin">✕</button>
+                        <button class="delete-btn admin-only-btn" onclick="promptDeleteRestock('${brand}', ${originalIndex})" title="Move to Recycle Bin">✕</button>
                     </div>
                     <div class="print-cell-text center">
                         <span class="print-status-badge ${statusClass}">${statusBadgeText}</span>
@@ -3611,6 +3805,12 @@
     }
 
     function promptDeleteRestock(brand, originalIndex) {
+        if (!isAdminLoggedIn()) {
+            showToast("⚠️ Admin authentication required to delete restock orders!", "warning");
+            openAdminModal();
+            return;
+        }
+
         let order = cachedRestockOrders[brand][originalIndex];
         deleteTarget = { isRestock: true, brand, originalIndex };
 
@@ -3918,9 +4118,14 @@
     }
 
     // =========================================================================
-    // RECYCLE BIN / TRASH MODAL
+    // RECYCLE BIN / TRASH MODAL (ADMIN ONLY)
     // =========================================================================
     async function openTrashModal() {
+        if (!isAdminLoggedIn()) {
+            showToast("⚠️ Admin authentication required to view Trash / Recycle Bin!", "warning");
+            openAdminModal();
+            return;
+        }
         document.getElementById('trashModal').style.display = 'flex';
         renderTrashTable();
     }
@@ -3956,7 +4161,7 @@
                 <td>Tk ${amt}</td>
                 <td>
                     <button class="reactivate-btn" onclick="restoreTrashItem('${k}')" title="Restore this order">🔄 Restore</button>
-                    <button class="delete-btn" onclick="permanentlyDeleteTrashItem('${k}')" title="Permanently Delete">✕</button>
+                    <button class="delete-btn admin-only-btn" onclick="permanentlyDeleteTrashItem('${k}')" title="Permanently Delete">✕</button>
                 </td>
             </tr>`;
         });
@@ -3966,6 +4171,12 @@
     }
 
     async function restoreTrashItem(trashKey) {
+        if (!isAdminLoggedIn()) {
+            showToast("⚠️ Admin authentication required to restore items!", "warning");
+            openAdminModal();
+            return;
+        }
+
         let trash = await window.fbLoadTrashOrders();
         if (!trash || !trash[trashKey]) return;
 
@@ -4008,6 +4219,11 @@
     }
 
     async function permanentlyDeleteTrashItem(trashKey) {
+        if (!isAdminLoggedIn()) {
+            showToast("⚠️ Admin authentication required to permanently delete data!", "warning");
+            openAdminModal();
+            return;
+        }
         if (!confirm("Permanently delete this order from Trash?")) return;
         await window.fbDeleteTrashOrder(trashKey);
         showToast("Order permanently removed", "info");
@@ -4016,6 +4232,11 @@
     }
 
     async function confirmClearAllTrash() {
+        if (!isAdminLoggedIn()) {
+            showToast("⚠️ Admin authentication required to empty trash!", "warning");
+            openAdminModal();
+            return;
+        }
         if (!confirm("Are you sure you want to permanently empty the entire Recycle Bin?")) return;
         await window.fbClearAllTrash();
         showToast("Recycle Bin cleared", "info");
