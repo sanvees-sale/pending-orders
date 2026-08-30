@@ -1413,9 +1413,12 @@
             flex: 1;
         }
 
-        /* Print styles */
-        .print-header-block {
-            display: none;
+        /* Print-only elements hidden on screen */
+        .print-header-block,
+        .print-cell-text,
+        .print-footer,
+        .print-status-badge {
+            display: none !important;
         }
 
         @media print {
