@@ -2492,12 +2492,50 @@
     }
 
     function getOrderUniqueKey(order) {
-        if (order.id) return order.id;
-        let no = (order.orderNo || '').trim();
-        let r = (order.orderReason || '').trim();
-        let a = order.amount !== undefined ? order.amount : '';
-        let p = (order.productName || '').trim();
-        return `${no}___${r}___${a}___${p}`;
+        if (!order) return "";
+        if (order.id) return String(order.id);
+        let no = normalizeBanglaDigits(String(order.orderNo || '')).toLowerCase().trim();
+        let p = normalizeBanglaDigits(String(order.productName || '')).toLowerCase().trim();
+        if (p) {
+            return `${no}___${p}`;
+        }
+        if (no) {
+            return no;
+        }
+        let r = normalizeBanglaDigits(String(order.orderReason || '')).toLowerCase().trim();
+        let a = order.amount !== undefined ? String(order.amount).trim() : '';
+        return `${no}___${r}___${a}`;
+    }
+
+    async function cleanFutureDatesForOrder(category, brand, afterDateStr, orderKey) {
+        if (!orderKey) return;
+        try {
+            if (category === 'orders') {
+                let allDatesData = await window.fbLoadAllDates(brand);
+                if (!allDatesData) return;
+                let futureDates = Object.keys(allDatesData).filter(d => d > afterDateStr);
+                for (let fDate of futureDates) {
+                    let fOrders = allDatesData[fDate] || [];
+                    let filtered = fOrders.filter(o => getOrderUniqueKey(o) !== orderKey);
+                    if (filtered.length !== fOrders.length) {
+                        await window.fbSaveOrder(brand, fDate, filtered);
+                    }
+                }
+            } else if (category === 'restock_orders') {
+                let allDatesData = await window.fbLoadAllRestockDates(brand);
+                if (!allDatesData) return;
+                let futureDates = Object.keys(allDatesData).filter(d => d > afterDateStr);
+                for (let fDate of futureDates) {
+                    let fOrders = allDatesData[fDate] || [];
+                    let filtered = fOrders.filter(o => getOrderUniqueKey(o) !== orderKey);
+                    if (filtered.length !== fOrders.length) {
+                        await window.fbSaveRestockOrders(brand, fDate, filtered);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Error cleaning future dates: ", e);
+        }
     }
 
     // =========================================================================
@@ -2664,49 +2702,70 @@
         let allDatesData = await window.fbLoadAllDates(type);
         if (!allDatesData) return;
 
-        let targetDateOrders = allDatesData[targetDateStr] || [];
+        let targetDateOrders = allDatesData[targetDateStr] ? [...allDatesData[targetDateStr]] : [];
         let pastDates = Object.keys(allDatesData).filter(d => d < targetDateStr).sort();
-        
-        let pendingMap = new Map();
-        targetDateOrders.forEach(o => {
-            let key = getOrderUniqueKey(o);
-            pendingMap.set(key, o);
-        });
 
-        let updated = false;
+        // 1. Trace historical states of all orders across past dates chronologically
+        let pastOrdersMap = new Map();
 
         for (let pDate of pastDates) {
             let dayOrders = allDatesData[pDate] || [];
             for (let order of dayOrders) {
-                let orderKey = getOrderUniqueKey(order);
-                let isResolvedLater = false;
-                
-                for (let checkDate of [...pastDates.filter(d => d > pDate), targetDateStr]) {
-                    let checkOrders = allDatesData[checkDate] || [];
-                    let foundMatch = checkOrders.find(o => getOrderUniqueKey(o) === orderKey);
-                    if (foundMatch && foundMatch.status !== 'pending') {
-                        isResolvedLater = true;
-                        break;
-                    }
-                }
+                let key = getOrderUniqueKey(order);
+                if (!key) continue;
 
-                if (order.status === 'pending' && !isResolvedLater) {
-                    if (!pendingMap.has(orderKey)) {
-                        pendingMap.set(orderKey, { 
-                            orderNo: order.orderNo, 
-                            orderReason: order.orderReason || '',
-                            amount: order.amount !== undefined ? order.amount : 0,
-                            status: 'pending' 
-                        });
-                        updated = true;
-                    }
-                }
+                let st = order.status || 'pending';
+                pastOrdersMap.set(key, {
+                    order: order,
+                    lastDate: pDate,
+                    lastStatus: st
+                });
             }
         }
 
-        if (updated) {
-            let finalOrders = Array.from(pendingMap.values());
-            await window.fbSaveOrder(type, targetDateStr, finalOrders);
+        // 2. Identify resolved (sent or cancelled) vs active pending orders
+        let resolvedInPastKeys = new Set();
+        let activePastPendingMap = new Map();
+
+        pastOrdersMap.forEach((info, key) => {
+            if (info.lastStatus === 'sent' || info.lastStatus === 'cancelled') {
+                resolvedInPastKeys.add(key);
+            } else if (info.lastStatus === 'pending') {
+                activePastPendingMap.set(key, info.order);
+            }
+        });
+
+        // 3. Purge any orders from targetDateOrders that were resolved (sent/cancelled) in past dates
+        let initialLength = targetDateOrders.length;
+        let cleanedOrders = targetDateOrders.filter(order => {
+            let key = getOrderUniqueKey(order);
+            return !resolvedInPastKeys.has(key);
+        });
+
+        // 4. Ensure all active pending orders from past dates exist in target date
+        let existingTargetKeys = new Set(cleanedOrders.map(o => getOrderUniqueKey(o)));
+        let addedCount = 0;
+
+        activePastPendingMap.forEach((pastOrder, key) => {
+            if (!existingTargetKeys.has(key)) {
+                cleanedOrders.push({
+                    id: pastOrder.id || key,
+                    orderNo: pastOrder.orderNo || '',
+                    orderReason: pastOrder.orderReason || '',
+                    amount: pastOrder.amount !== undefined ? pastOrder.amount : 0,
+                    status: 'pending'
+                });
+                existingTargetKeys.add(key);
+                addedCount++;
+            }
+        });
+
+        // 5. If target date data changed, update Firebase and local state
+        if (cleanedOrders.length !== initialLength || addedCount > 0) {
+            await window.fbSaveOrder(type, targetDateStr, cleanedOrders);
+            if (cachedOrders && (await getActiveDate()) === targetDateStr) {
+                cachedOrders[type] = cleanedOrders;
+            }
         }
     }
 
@@ -2737,7 +2796,8 @@
         }
 
         let orders = (await window.fbLoadOrders(type, selectedDate)) || [];
-        orders.push({ orderNo, orderReason, amount, status: 'pending' });
+        let id = 'ord_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7);
+        orders.push({ id, orderNo, orderReason, amount, status: 'pending' });
         await window.fbSaveOrder(type, selectedDate, orders);
 
         orderNoInput.value = "";
@@ -3063,6 +3123,11 @@
         selectElement.className = 'status-select status-' + selectElement.value;
         showToast(`Status updated to ${selectElement.value.toUpperCase()}`, "info");
 
+        if (newStatus === 'sent' || newStatus === 'cancelled') {
+            let orderKey = getOrderUniqueKey(orders[originalIndex]);
+            cleanFutureDatesForOrder('orders', type, selectedDate, orderKey);
+        }
+
         updateDashboardStats(type, orders);
         renderFilteredTable(type);
     }
@@ -3104,8 +3169,10 @@
                 };
                 await window.fbSaveTrashOrder(trashRecord);
                 
+                let orderKey = getOrderUniqueKey(deletedItem);
                 orders.splice(originalIndex, 1);
                 await window.fbSaveRestockOrders(brand, selectedDate, orders);
+                cleanFutureDatesForOrder('restock_orders', brand, selectedDate, orderKey);
                 showToast("Restocked order moved to Trash", "warning");
                 closeConfirmModal();
                 updateTrashBadge();
@@ -3124,8 +3191,10 @@
                 };
                 await window.fbSaveTrashOrder(trashRecord);
 
+                let orderKey = getOrderUniqueKey(deletedItem);
                 orders.splice(originalIndex, 1);
                 await window.fbSaveOrder(brand, selectedDate, orders);
+                cleanFutureDatesForOrder('orders', brand, selectedDate, orderKey);
                 showToast("Order moved to Trash", "warning");
                 closeConfirmModal();
                 updateTrashBadge();
@@ -3147,51 +3216,71 @@
         let allDatesData = await window.fbLoadAllRestockDates(brand);
         if (!allDatesData) return;
 
-        let targetDateOrders = allDatesData[targetDateStr] || [];
+        let targetDateOrders = allDatesData[targetDateStr] ? [...allDatesData[targetDateStr]] : [];
         let pastDates = Object.keys(allDatesData).filter(d => d < targetDateStr).sort();
-        
-        let orderMap = new Map();
-        targetDateOrders.forEach(o => {
-            let key = getOrderUniqueKey(o);
-            orderMap.set(key, o);
-        });
 
-        let updated = false;
+        // 1. Analyze historical status of all restock orders across past dates chronologically
+        let pastOrdersMap = new Map();
 
         for (let pDate of pastDates) {
             let dayOrders = allDatesData[pDate] || [];
             for (let order of dayOrders) {
                 let key = getOrderUniqueKey(order);
-                let isResolvedLater = false;
-                
-                for (let checkDate of [...pastDates.filter(d => d > pDate), targetDateStr]) {
-                    let checkOrders = allDatesData[checkDate] || [];
-                    let foundMatch = checkOrders.find(o => getOrderUniqueKey(o) === key);
-                    if (foundMatch && (foundMatch.status === 'sent' || foundMatch.status === 'cancelled')) {
-                        isResolvedLater = true;
-                        break;
-                    }
-                }
+                if (!key) continue;
 
-                // If awaiting restock or ready in stock and not sent later, carry forward!
-                if ((order.status === 'awaiting' || order.status === 'ready') && !isResolvedLater) {
-                    if (!orderMap.has(key)) {
-                        orderMap.set(key, { 
-                            orderNo: order.orderNo, 
-                            productName: order.productName || '',
-                            orderReason: order.orderReason || '',
-                            amount: order.amount !== undefined ? order.amount : 0,
-                            status: order.status 
-                        });
-                        updated = true;
-                    }
-                }
+                let st = order.status || 'awaiting';
+                pastOrdersMap.set(key, {
+                    order: order,
+                    lastDate: pDate,
+                    lastStatus: st
+                });
             }
         }
 
-        if (updated) {
-            let finalOrders = Array.from(orderMap.values());
-            await window.fbSaveRestockOrders(brand, targetDateStr, finalOrders);
+        // 2. Identify resolved vs active restock orders from history
+        let resolvedInPastKeys = new Set();
+        let activePastRestockMap = new Map();
+
+        pastOrdersMap.forEach((info, key) => {
+            if (info.lastStatus === 'sent' || info.lastStatus === 'cancelled') {
+                resolvedInPastKeys.add(key);
+            } else if (info.lastStatus === 'awaiting' || info.lastStatus === 'ready') {
+                activePastRestockMap.set(key, info);
+            }
+        });
+
+        // 3. Purge orders from target date that were resolved (sent/cancelled) on previous dates
+        let initialLength = targetDateOrders.length;
+        let cleanedOrders = targetDateOrders.filter(order => {
+            let key = getOrderUniqueKey(order);
+            return !resolvedInPastKeys.has(key);
+        });
+
+        // 4. Carry forward active awaiting/ready orders into target date
+        let existingTargetKeys = new Set(cleanedOrders.map(o => getOrderUniqueKey(o)));
+        let addedCount = 0;
+
+        activePastRestockMap.forEach((info, key) => {
+            if (!existingTargetKeys.has(key)) {
+                cleanedOrders.push({
+                    id: info.order.id || key,
+                    orderNo: info.order.orderNo || '',
+                    productName: info.order.productName || '',
+                    orderReason: info.order.orderReason || 'Awaiting Restock',
+                    amount: info.order.amount !== undefined ? info.order.amount : 0,
+                    status: info.lastStatus // preserve awaiting or ready
+                });
+                existingTargetKeys.add(key);
+                addedCount++;
+            }
+        });
+
+        // 5. If target date changed, save to Firebase and cache
+        if (cleanedOrders.length !== initialLength || addedCount > 0) {
+            await window.fbSaveRestockOrders(brand, targetDateStr, cleanedOrders);
+            if (cachedRestockOrders && (await getActiveDate()) === targetDateStr) {
+                cachedRestockOrders[brand] = cleanedOrders;
+            }
         }
     }
 
@@ -3230,7 +3319,9 @@
         }
 
         let orders = (await window.fbLoadRestockOrders(brand, selectedDate)) || [];
+        let id = 'rst_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7);
         orders.push({ 
+            id,
             orderNo, 
             productName, 
             orderReason: orderReason || 'Awaiting Restock', 
@@ -3494,6 +3585,11 @@
         selectElement.className = 'status-select status-' + newStatus;
         showToast(`Status updated to ${newStatus.toUpperCase()}`, "info");
 
+        if (newStatus === 'sent' || newStatus === 'cancelled') {
+            let orderKey = getOrderUniqueKey(orders[originalIndex]);
+            cleanFutureDatesForOrder('restock_orders', brand, selectedDate, orderKey);
+        }
+
         updateRestockDashboardStats(brand, orders);
         renderRestockTable(brand);
     }
@@ -3505,6 +3601,9 @@
 
         orders[originalIndex].status = 'sent';
         await window.fbSaveRestockOrders(brand, selectedDate, orders);
+
+        let orderKey = getOrderUniqueKey(orders[originalIndex]);
+        cleanFutureDatesForOrder('restock_orders', brand, selectedDate, orderKey);
 
         showToast(`Product restocked & parcel marked as SENT! 🚀`, "success");
         updateRestockDashboardStats(brand, orders);
@@ -3876,6 +3975,7 @@
         if (isRestock) {
             let orders = (await window.fbLoadRestockOrders(brand, dateStr)) || [];
             orders.push({
+                id: item.id || ('rst_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7)),
                 orderNo: item.orderNo || '',
                 productName: item.productName || '',
                 orderReason: item.orderReason || 'Restored',
@@ -3886,6 +3986,7 @@
         } else {
             let orders = (await window.fbLoadOrders(brand, dateStr)) || [];
             orders.push({
+                id: item.id || ('ord_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7)),
                 orderNo: item.orderNo || '',
                 orderReason: item.orderReason || 'Restored',
                 amount: item.amount || 0,
