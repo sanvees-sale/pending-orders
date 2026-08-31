@@ -1132,116 +1132,6 @@
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
         }
 
-        .shift-btn {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 8px;
-            font-size: 11.5px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-left: 6px;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            white-space: nowrap;
-            font-family: inherit;
-        }
-
-        .shift-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.45);
-        }
-
-        /* Shift Destination Grid & Options */
-        .shift-dest-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-            gap: 10px;
-            margin: 12px 0 16px 0;
-        }
-
-        .shift-dest-option {
-            border: 2px solid var(--border);
-            border-radius: 14px;
-            padding: 12px 14px;
-            cursor: pointer;
-            background: var(--card-sub-bg);
-            transition: all 0.2s ease;
-            text-align: left;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            user-select: none;
-        }
-
-        .shift-dest-option:hover {
-            border-color: var(--primary);
-            background: var(--primary-light);
-        }
-
-        .shift-dest-option.active {
-            border-color: var(--primary);
-            background: var(--primary-light);
-            box-shadow: 0 0 0 2px var(--primary-glow);
-        }
-
-        .shift-dest-title {
-            font-weight: 800;
-            font-size: 13px;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .shift-dest-desc {
-            font-size: 11.5px;
-            color: var(--text-muted);
-            line-height: 1.3;
-        }
-
-        /* Duplicate Alert Card */
-        .duplicate-card-box {
-            background: #fffbeb;
-            border: 1.5px solid #fde68a;
-            border-radius: 16px;
-            padding: 16px;
-            margin: 14px 0 18px 0;
-            text-align: left;
-        }
-
-        [data-theme="dark"] .duplicate-card-box {
-            background: rgba(245, 158, 11, 0.12);
-            border-color: rgba(245, 158, 11, 0.35);
-        }
-
-        .duplicate-detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 6px 0;
-            border-bottom: 1px dashed rgba(245, 158, 11, 0.25);
-            font-size: 13px;
-        }
-
-        .duplicate-detail-row:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .duplicate-label {
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .duplicate-val {
-            color: var(--text-main);
-            font-weight: 800;
-        }
 
         /* Summary Total Rows */
         .total-row {
@@ -1956,10 +1846,10 @@
                 <thead>
                     <tr>
                         <th width="5%">#</th>
-                        <th width="24%">Order No / Customer</th>
-                        <th width="35%">Pending Reason</th>
-                        <th width="13%">Amount (BDT)</th>
-                        <th width="23%">Status / Action</th>
+                        <th width="26%">Order No / Customer</th>
+                        <th width="37%">Pending Reason</th>
+                        <th width="14%">Amount (BDT)</th>
+                        <th width="18%">Status / Action</th>
                     </tr>
                 </thead>
                 <tbody id="tonyTableBody"></tbody>
@@ -2090,11 +1980,11 @@
                 <thead>
                     <tr>
                         <th width="4%">#</th>
-                        <th width="20%">Customer / Order No</th>
-                        <th width="22%">Product Code & Size</th>
-                        <th width="24%">Restock Note / Batch</th>
+                        <th width="22%">Customer / Order No</th>
+                        <th width="24%">Product Code & Size</th>
+                        <th width="26%">Restock Note / Batch</th>
                         <th width="10%">Amount (BDT)</th>
-                        <th width="20%">Status / Action</th>
+                        <th width="14%">Status / Action</th>
                     </tr>
                 </thead>
                 <tbody id="tonyRestockTableBody"></tbody>
@@ -2234,10 +2124,10 @@
                 <thead>
                     <tr>
                         <th width="5%">#</th>
-                        <th width="24%">Order No / Customer</th>
-                        <th width="35%">Pending Reason</th>
-                        <th width="13%">Amount (BDT)</th>
-                        <th width="23%">Status / Action</th>
+                        <th width="26%">Order No / Customer</th>
+                        <th width="37%">Pending Reason</th>
+                        <th width="14%">Amount (BDT)</th>
+                        <th width="18%">Status / Action</th>
                     </tr>
                 </thead>
                 <tbody id="sanveesTableBody"></tbody>
@@ -2379,11 +2269,11 @@
                 <thead>
                     <tr>
                         <th width="4%">#</th>
-                        <th width="20%">Customer / Order No</th>
-                        <th width="22%">Product Code & Size</th>
-                        <th width="24%">Restock Note / Batch</th>
+                        <th width="22%">Customer / Order No</th>
+                        <th width="24%">Product Code & Size</th>
+                        <th width="26%">Restock Note / Batch</th>
                         <th width="10%">Amount (BDT)</th>
-                        <th width="20%">Status / Action</th>
+                        <th width="14%">Status / Action</th>
                     </tr>
                 </thead>
                 <tbody id="sanveesRestockTableBody"></tbody>
@@ -2623,119 +2513,11 @@
     </div>
 </div>
 
-<!-- 4. Shift / Transfer Order Modal (অর্ডার স্থানান্তর) -->
-<div id="shiftOrderModal" class="modal-overlay">
-    <div class="modal-box large-modal" style="max-width: 580px;">
-        <div class="modal-header">
-            <div class="modal-title">
-                <span>🔀</span> Shift / Transfer Order (অর্ডার স্থানান্তর)
-            </div>
-            <button class="modal-close-btn" onclick="closeShiftModal()" title="Close">✕</button>
-        </div>
 
-        <div class="modal-desc" style="margin-bottom: 14px;">
-            এই অর্ডারটি সরাসরি অন্য কোনো সেকশন বা ট্যাবে স্থানান্তর (Shift) করতে নিচে গন্তব্য নির্বাচন করুন। স্থানান্তর করার পর বর্তমান তালিকা থেকে এটি স্বয়ংক্রিয়ভাবে মুছে যাবে।
-        </div>
-
-        <!-- Source Order Summary Card -->
-        <div id="shiftSourceSummary" class="modal-order-preview" style="background: var(--card-sub-bg); border-left: 4px solid var(--primary); padding: 14px 16px; margin: 0 0 16px 0;">
-            <!-- Rendered dynamically -->
-        </div>
-
-        <!-- Destination Selector -->
-        <div style="font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">
-            📍 Select Destination Section / কোথায় শিফট করতে চান:
-        </div>
-        <div class="shift-dest-grid" id="shiftDestOptions">
-            <!-- Rendered dynamically depending on source tab -->
-        </div>
-
-        <!-- Dynamic Destination Fields -->
-        <div id="shiftDynamicFields" style="margin-top: 14px; background: var(--card-sub-bg); padding: 16px; border-radius: 16px; border: 1px solid var(--border);">
-            <div id="shiftProductGroup" style="margin-bottom: 12px; display: none;">
-                <label style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-main); margin-bottom: 5px;">
-                    Product Code & Size / প্রোডাক্ট কোড ও সাইজ:
-                </label>
-                <input type="text" id="shiftProductInput" class="inline-edit-input" style="background: var(--input-bg); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; font-weight: 700; color: var(--primary);" placeholder="e.g. DR-204 Size M">
-            </div>
-
-            <div style="margin-bottom: 12px;">
-                <label id="shiftReasonLabel" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-main); margin-bottom: 5px;">
-                    Pending Reason / Restock Note:
-                </label>
-                <input type="text" id="shiftReasonInput" class="inline-edit-input" style="background: var(--input-bg); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; font-weight: 600;" placeholder="Reason or batch note...">
-            </div>
-
-            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 130px;">
-                    <label style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-main); margin-bottom: 5px;">
-                        Amount (BDT):
-                    </label>
-                    <input type="number" id="shiftAmountInput" class="inline-edit-input" style="background: var(--input-bg); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; font-weight: 800;" placeholder="Amount">
-                </div>
-                <div style="flex: 1; min-width: 150px;">
-                    <label style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-main); margin-bottom: 5px;">
-                        Target Status:
-                    </label>
-                    <select id="shiftStatusSelect" class="status-select" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); font-weight: 700;">
-                        <!-- Rendered based on target type -->
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-actions" style="margin-top: 20px;">
-            <button class="modal-btn modal-btn-cancel" onclick="closeShiftModal()">Cancel</button>
-            <button class="modal-btn modal-btn-primary" onclick="executeShiftOrder()">
-                <span>🚀</span> Confirm & Shift Order
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- 5. Duplicate Number Detected Alert Modal -->
-<div id="duplicateAlertModal" class="modal-overlay">
-    <div class="modal-box" style="max-width: 520px; text-align: left;">
-        <div class="modal-header" style="border-bottom-color: #fde68a;">
-            <div class="modal-title" style="color: #b45309;">
-                <span>⚠️</span> Duplicate Number Found (নাম্বারটি বিদ্যমান)
-            </div>
-            <button class="modal-close-btn" onclick="closeDuplicateModal()" title="Close">✕</button>
-        </div>
-
-        <div style="font-size: 14px; color: var(--text-main); line-height: 1.5; margin-bottom: 12px;">
-            এই নাম্বারটি ইতিমধ্যে অর্ডারের তালিকায় বিদ্যমান রয়েছে। একই নাম্বার ২য় বার নতুন করে এন্ট্রি করা যাবে না।
-        </div>
-
-        <!-- Details Card of the Found Existing Record -->
-        <div id="duplicateDetailsCard" class="duplicate-card-box">
-            <!-- Rendered dynamically -->
-        </div>
-
-        <div style="font-size: 12.5px; color: var(--text-muted); line-height: 1.4; margin-bottom: 18px;">
-            💡 <b>পরামর্শ:</b> আপনি চাইলে বিদ্যমান অর্ডারটি সরাসরি <b>শিফট (Shift)</b> করে বর্তমান ট্যাবে স্থানান্তর করতে পারেন অথবা আগের রেকর্ডটি ওপেন করতে পারেন।
-        </div>
-
-        <div class="modal-actions" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-            <button class="modal-btn modal-btn-cancel" onclick="closeDuplicateModal()">Close</button>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button class="modal-btn" id="duplicateViewBtn" style="background: var(--card-sub-bg); border: 1px solid var(--border-focus); color: var(--primary);">
-                    <span>👁️</span> View Existing
-                </button>
-                <button class="modal-btn modal-btn-primary" id="duplicateShiftBtn" style="background: var(--primary-grad); color: white;">
-                    <span>🔀</span> Shift Existing Here
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script>
     let deleteTarget = null;
     let activeTab = 'tony'; // 'tony', 'tony-restock', 'sanvees', 'sanvees-restock'
-    let currentShiftTarget = null; // { isRestock, brand, originalIndex, order }
-    let selectedShiftDest = 'tony-restock';
-    let pendingDuplicateAction = null;
 
     let currentFilters = {
         tony: { status: 'all', search: '' },
@@ -2843,308 +2625,22 @@
     }
 
     // =========================================================================
-    // CROSS-TAB DUPLICATE DETECTION ENGINE (BANGLA & ENGLISH)
+    // SAME-PAGE DUPLICATE DETECTION (BANGLA & ENGLISH NUMERALS)
     // =========================================================================
-    function findDuplicateAcrossAllTabs(inputNumber, excludeId = null) {
-        if (!inputNumber) return null;
-        let targetKey = extractNormalizedPhoneOrNumber(inputNumber);
-        if (!targetKey) return null;
-
-        const checkList = (list, tabKey, isRestock, brandName, tabDisplayName) => {
-            if (!list || !Array.isArray(list)) return null;
-            for (let i = 0; i < list.length; i++) {
-                let item = list[i];
-                if (excludeId && item.id === excludeId) continue;
-                
-                if (isNumberMatch(item.orderNo, inputNumber)) {
-                    return {
-                        isDuplicate: true,
-                        tabKey: tabKey,
-                        isRestock: isRestock,
-                        brandName: brandName,
-                        tabDisplayName: tabDisplayName,
-                        order: item,
-                        originalIndex: i,
-                        matchedNumber: item.orderNo,
-                        normalizedNumber: targetKey
-                    };
-                }
+    function findDuplicateInList(list, inputNumber, excludeId = null) {
+        if (!list || !Array.isArray(list) || !inputNumber) return null;
+        for (let i = 0; i < list.length; i++) {
+            let item = list[i];
+            if (excludeId && item.id === excludeId) continue;
+            if (isNumberMatch(item.orderNo, inputNumber)) {
+                return {
+                    matchedNumber: item.orderNo,
+                    originalIndex: i,
+                    order: item
+                };
             }
-            return null;
-        };
-
-        // 1. Check Tony Pendings
-        let f1 = checkList(cachedOrders.tony, 'tony', false, 'tony', "Sanvee's by Tony (Pendings)");
-        if (f1) return f1;
-
-        // 2. Check Sanvee's Pendings
-        let f2 = checkList(cachedOrders.sanvees, 'sanvees', false, 'sanvees', "Sanvee's (Pendings)");
-        if (f2) return f2;
-
-        // 3. Check Tony Restock
-        let f3 = checkList(cachedRestockOrders.tony, 'tony-restock', true, 'tony', "Sanvee's by Tony (Restocked Orders)");
-        if (f3) return f3;
-
-        // 4. Check Sanvee's Restock
-        let f4 = checkList(cachedRestockOrders.sanvees, 'sanvees-restock', true, 'sanvees', "Sanvee's (Restocked Orders)");
-        if (f4) return f4;
-
+        }
         return null;
-    }
-
-    // =========================================================================
-    // DUPLICATE ALERT MODAL HANDLERS
-    // =========================================================================
-    function openDuplicateAlertModal(dupInfo, attemptedTabKey, attemptedFormPayload) {
-        pendingDuplicateAction = { dupInfo, attemptedTabKey, attemptedFormPayload };
-        const modal = document.getElementById('duplicateAlertModal');
-        const details = document.getElementById('duplicateDetailsCard');
-
-        let st = dupInfo.order.status || (dupInfo.isRestock ? 'awaiting' : 'pending');
-        let stText = st.toUpperCase();
-        let reasonText = dupInfo.isRestock 
-            ? `[${dupInfo.order.productName || 'Product'}] ${dupInfo.order.orderReason || ''}` 
-            : (dupInfo.order.orderReason || 'N/A');
-
-        details.innerHTML = `
-            <div class="duplicate-detail-row">
-                <span class="duplicate-label">ফোন / কাস্টমার নাম্বার:</span>
-                <span class="duplicate-val" style="color: var(--primary); font-size: 15px;">${escapeHtml(dupInfo.order.orderNo || '')}</span>
-            </div>
-            <div class="duplicate-detail-row">
-                <span class="duplicate-label">বর্তমান সেকশন / ট্যাব:</span>
-                <span class="duplicate-val" style="color: #7c3aed;">${escapeHtml(dupInfo.tabDisplayName)}</span>
-            </div>
-            <div class="duplicate-detail-row">
-                <span class="duplicate-label">বিবরণ / নোট:</span>
-                <span class="duplicate-val">${escapeHtml(reasonText)}</span>
-            </div>
-            <div class="duplicate-detail-row">
-                <span class="duplicate-label">টাকার পরিমাণ (Amount):</span>
-                <span class="duplicate-val">Tk ${(dupInfo.order.amount || 0).toLocaleString()}</span>
-            </div>
-            <div class="duplicate-detail-row">
-                <span class="duplicate-label">বর্তমান স্ট্যাটাস:</span>
-                <span class="duplicate-val"><span class="status-select status-${st}" style="font-size: 11px; padding: 3px 8px; font-weight: 800;">${stText}</span></span>
-            </div>
-        `;
-
-        document.getElementById('duplicateViewBtn').onclick = () => {
-            closeDuplicateModal();
-            switchTab(dupInfo.tabKey);
-            setTimeout(() => {
-                let rowPrefix = dupInfo.isRestock ? `restockRow_${dupInfo.brandName}_` : `orderRow_${dupInfo.brandName}_`;
-                let row = document.getElementById(rowPrefix + dupInfo.originalIndex);
-                if (row) {
-                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    row.classList.add('highlight-flash');
-                    setTimeout(() => row.classList.remove('highlight-flash'), 2500);
-                }
-            }, 300);
-        };
-
-        const shiftBtn = document.getElementById('duplicateShiftBtn');
-        if (dupInfo.tabKey === attemptedTabKey) {
-            shiftBtn.style.display = 'none';
-        } else {
-            shiftBtn.style.display = 'inline-flex';
-            shiftBtn.onclick = () => {
-                closeDuplicateModal();
-                openShiftModal(dupInfo.isRestock, dupInfo.brandName, dupInfo.originalIndex, attemptedTabKey);
-            };
-        }
-
-        modal.style.display = 'flex';
-    }
-
-    function closeDuplicateModal() {
-        const modal = document.getElementById('duplicateAlertModal');
-        if (modal) modal.style.display = 'none';
-        pendingDuplicateAction = null;
-    }
-
-    // =========================================================================
-    // ORDER SHIFT & TRANSFER SYSTEM (পেন্ডিং ও রিস্টকের মধ্যে অর্ডার স্থানান্তর)
-    // =========================================================================
-    function openShiftModal(isRestock, brand, originalIndex, preselectedDest = null) {
-        let list = isRestock ? cachedRestockOrders[brand] : cachedOrders[brand];
-        if (!list || !list[originalIndex]) {
-            showToast("Order not found", "error");
-            return;
-        }
-
-        let order = list[originalIndex];
-        currentShiftTarget = { isRestock, brand, originalIndex, order };
-
-        let srcName = isRestock 
-            ? (brand === 'tony' ? "Sanvee's by Tony (Restocked Orders)" : "Sanvee's (Restocked Orders)") 
-            : (brand === 'tony' ? "Sanvee's by Tony (Pendings)" : "Sanvee's (Pendings)");
-        
-        let summaryHtml = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <strong style="font-size: 15px; color: var(--text-main);">${escapeHtml(order.orderNo || '')}</strong>
-                <span class="tag-badge ${isRestock ? 'tag-restock' : (brand === 'tony' ? 'tag-tony' : 'tag-sanvees')}">${srcName}</span>
-            </div>
-            <div style="font-size: 12.5px; color: var(--text-muted); line-height: 1.4;">
-                ${isRestock ? `<b>Product:</b> ${escapeHtml(order.productName || 'N/A')} | ` : ''}
-                <b>Reason/Note:</b> ${escapeHtml(order.orderReason || 'N/A')} | 
-                <b>Amount:</b> Tk ${(order.amount || 0).toLocaleString()} | 
-                <b>Status:</b> ${(order.status || (isRestock ? 'awaiting' : 'pending')).toUpperCase()}
-            </div>
-        `;
-        document.getElementById('shiftSourceSummary').innerHTML = summaryHtml;
-
-        const allDests = [
-            { key: 'tony', isRestock: false, title: "✨ Tony Pendings", desc: "Sanvee's by Tony Pending List" },
-            { key: 'tony-restock', isRestock: true, title: "🔄 Tony Restock", desc: "Sanvee's by Tony Restocked List" },
-            { key: 'sanvees', isRestock: false, title: "👗 Sanvee's Pendings", desc: "Sanvee's Main Pending List" },
-            { key: 'sanvees-restock', isRestock: true, title: "🔄 Sanvee's Restock", desc: "Sanvee's Main Restocked List" }
-        ];
-
-        let currentKey = isRestock ? `${brand}-restock` : brand;
-        let availableDests = allDests.filter(d => d.key !== currentKey);
-
-        let defaultDest = preselectedDest || (!isRestock ? `${brand}-restock` : brand);
-        if (!availableDests.some(d => d.key === defaultDest)) {
-            defaultDest = availableDests[0].key;
-        }
-
-        let optionsHtml = "";
-        availableDests.forEach(d => {
-            let activeCls = d.key === defaultDest ? 'active' : '';
-            optionsHtml += `
-                <div class="shift-dest-option ${activeCls}" id="shiftDestOpt_${d.key}" onclick="selectShiftDestination('${d.key}')">
-                    <div class="shift-dest-title">${d.title}</div>
-                    <div class="shift-dest-desc">${d.desc}</div>
-                </div>
-            `;
-        });
-        document.getElementById('shiftDestOptions').innerHTML = optionsHtml;
-
-        document.getElementById('shiftAmountInput').value = order.amount !== undefined ? order.amount : 0;
-        document.getElementById('shiftReasonInput').value = order.orderReason || '';
-        document.getElementById('shiftProductInput').value = order.productName || '';
-
-        selectShiftDestination(defaultDest);
-        document.getElementById('shiftOrderModal').style.display = 'flex';
-    }
-
-    function closeShiftModal() {
-        const modal = document.getElementById('shiftOrderModal');
-        if (modal) modal.style.display = 'none';
-        currentShiftTarget = null;
-    }
-
-    function selectShiftDestination(destKey) {
-        selectedShiftDest = destKey;
-
-        document.querySelectorAll('.shift-dest-option').forEach(el => el.classList.remove('active'));
-        const targetOpt = document.getElementById(`shiftDestOpt_${destKey}`);
-        if (targetOpt) targetOpt.classList.add('active');
-
-        const isDestRestock = destKey.includes('restock');
-        const productGroup = document.getElementById('shiftProductGroup');
-        const reasonLabel = document.getElementById('shiftReasonLabel');
-        const statusSelect = document.getElementById('shiftStatusSelect');
-
-        if (isDestRestock) {
-            productGroup.style.display = 'block';
-            reasonLabel.innerText = 'Restock Note / Batch (নোট):';
-            statusSelect.innerHTML = `
-                <option value="awaiting" selected>⏳ Awaiting Restock</option>
-                <option value="ready">📦 In Stock / Ready</option>
-                <option value="sent">🚚 Parcel Sent</option>
-                <option value="cancelled">❌ Cancelled</option>
-            `;
-        } else {
-            productGroup.style.display = 'none';
-            reasonLabel.innerText = 'Pending Reason (পেন্ডিং কারণ):';
-            statusSelect.innerHTML = `
-                <option value="pending" selected>⏳ Pending</option>
-                <option value="sent">🚚 Parcel Sent</option>
-                <option value="cancelled">❌ Cancelled</option>
-            `;
-        }
-    }
-
-    async function executeShiftOrder() {
-        if (!currentShiftTarget) return;
-
-        let { isRestock: srcIsRestock, brand: srcBrand, originalIndex, order: sourceOrder } = currentShiftTarget;
-        let selectedDate = await getActiveDate();
-        let destTab = selectedShiftDest;
-
-        let srcList = srcIsRestock ? cachedRestockOrders[srcBrand] : cachedOrders[srcBrand];
-        if (!srcList || !srcList[originalIndex]) {
-            showToast("Order not found in source list", "error");
-            closeShiftModal();
-            return;
-        }
-
-        let orderKey = getOrderUniqueKey(sourceOrder);
-
-        let newProduct = document.getElementById('shiftProductInput').value.trim();
-        let newReason = document.getElementById('shiftReasonInput').value.trim();
-        let newAmount = parseFloat(document.getElementById('shiftAmountInput').value) || 0;
-        let newStatus = document.getElementById('shiftStatusSelect').value;
-
-        let destIsRestock = destTab.includes('restock');
-        let destBrand = destTab.split('-')[0]; // 'tony' or 'sanvees'
-
-        // 1. Remove from source list on active date
-        srcList.splice(originalIndex, 1);
-        if (srcIsRestock) {
-            await window.fbSaveRestockOrders(srcBrand, selectedDate, srcList);
-            await cleanFutureDatesForOrder('restock_orders', srcBrand, selectedDate, orderKey);
-        } else {
-            await window.fbSaveOrder(srcBrand, selectedDate, srcList);
-            await cleanFutureDatesForOrder('orders', srcBrand, selectedDate, orderKey);
-        }
-
-        // 2. Add to destination list on active date
-        if (destIsRestock) {
-            let destOrders = (await window.fbLoadRestockOrders(destBrand, selectedDate)) || [];
-            let newId = 'rst_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7);
-            destOrders.push({
-                id: newId,
-                orderNo: sourceOrder.orderNo || '',
-                productName: newProduct || sourceOrder.productName || 'Restocked Item',
-                orderReason: newReason || sourceOrder.orderReason || 'Shifted from ' + (srcIsRestock ? 'Restock' : 'Pending'),
-                amount: newAmount,
-                status: newStatus || 'awaiting'
-            });
-            await window.fbSaveRestockOrders(destBrand, selectedDate, destOrders);
-            cachedRestockOrders[destBrand] = destOrders;
-        } else {
-            let destOrders = (await window.fbLoadOrders(destBrand, selectedDate)) || [];
-            let newId = 'ord_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7);
-            destOrders.push({
-                id: newId,
-                orderNo: sourceOrder.orderNo || '',
-                orderReason: newReason || sourceOrder.orderReason || (sourceOrder.productName ? `[${sourceOrder.productName}] Shifted to Pending` : 'Shifted to Pending'),
-                amount: newAmount,
-                status: newStatus || 'pending'
-            });
-            await window.fbSaveOrder(destBrand, selectedDate, destOrders);
-            cachedOrders[destBrand] = destOrders;
-        }
-
-        closeShiftModal();
-        
-        // Refresh all tabs
-        await loadOrders('tony');
-        await loadOrders('sanvees');
-        await loadRestockOrders('tony');
-        await loadRestockOrders('sanvees');
-
-        let destName = destIsRestock 
-            ? (destBrand === 'tony' ? "Sanvee's by Tony (Restocked Orders)" : "Sanvee's (Restocked Orders)") 
-            : (destBrand === 'tony' ? "Sanvee's by Tony Pendings" : "Sanvee's Pendings");
-
-        showToast(`✅ Order (${sourceOrder.orderNo}) successfully shifted to ${destName}!`, "success");
-
-        // Switch to target tab
-        switchTab(destTab);
     }
 
     async function cleanFutureDatesForOrder(category, brand, afterDateStr, orderKey) {
@@ -3340,8 +2836,6 @@
                 closeTrashModal();
                 closeConfirmModal();
                 closeAdminModal();
-                closeShiftModal();
-                closeDuplicateModal();
             }
         });
     });
@@ -3539,11 +3033,16 @@
             return;
         }
 
-        // Duplicate Check Across All Tabs (Bangla & English)
-        let dup = findDuplicateAcrossAllTabs(orderNo);
+        // Duplicate Check only in current pending list (Bangla & English)
+        let dup = findDuplicateInList(cachedOrders[type], orderNo);
         if (dup) {
-            showToast(`⚠️ এই নাম্বারটি (${dup.matchedNumber}) ইতিমধ্যে "${dup.tabDisplayName}" এ বিদ্যমান!`, "warning");
-            openDuplicateAlertModal(dup, type, { orderNo, orderReason, amount });
+            showToast(`⚠️ এই নাম্বারটি (${dup.matchedNumber}) ইতিমধ্যে এই তালিকায় বিদ্যমান! একই পেজে ২ বার যোগ করা যাবে না।`, "error");
+            let existingRow = document.getElementById(`orderRow_${type}_${dup.originalIndex}`);
+            if (existingRow) {
+                existingRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                existingRow.classList.add('highlight-flash');
+                setTimeout(() => existingRow.classList.remove('highlight-flash'), 2500);
+            }
             return;
         }
 
@@ -3742,15 +3241,14 @@
                     <div class="print-cell-text center amount">Tk ${orderAmount.toLocaleString()}</div>
                 </td>
                 
-                <!-- Status: Screen Dropdown + Shift Button + Print Colorful Badge -->
+                <!-- Status: Screen Dropdown + Print Colorful Badge -->
                 <td>
-                    <div class="screen-only-input" style="display:flex; align-items:center; flex-wrap:nowrap;">
+                    <div class="screen-only-input" style="display:flex; align-items:center;">
                         <select class="status-select ${statusClass}" onchange="updateStatus('${type}', ${originalIndex}, this)">
                             <option value="pending" ${currentStatus === 'pending' ? 'selected' : ''}>⏳ Pending</option>
                             <option value="sent" ${currentStatus === 'sent' ? 'selected' : ''}>🚚 Parcel Sent</option>
                             <option value="cancelled" ${currentStatus === 'cancelled' ? 'selected' : ''}>❌ Cancelled</option>
                         </select>
-                        <button type="button" class="shift-btn" onclick="openShiftModal(false, '${type}', ${originalIndex})" title="Shift / Move Order to Restock or another tab">🔀 Shift</button>
                         <button class="delete-btn admin-only-btn" onclick="promptDelete('${type}', ${originalIndex})" title="Move to Recycle Bin">✕</button>
                     </div>
                     <div class="print-cell-text center">
@@ -3854,9 +3352,9 @@
 
         if (field === 'orderNo') {
             let currentId = orders[originalIndex].id;
-            let dup = findDuplicateAcrossAllTabs(newValue, currentId);
+            let dup = findDuplicateInList(orders, newValue, currentId);
             if (dup) {
-                showToast(`⚠️ পরিবর্তন করা যাবে না: নাম্বারটি (${dup.matchedNumber}) ইতিমধ্যে "${dup.tabDisplayName}" এ আছে!`, "error");
+                showToast(`⚠️ পরিবর্তন করা যাবে না: নাম্বারটি (${dup.matchedNumber}) ইতিমধ্যে এই তালিকায় আছে!`, "error");
                 renderFilteredTable(type);
                 return;
             }
@@ -4094,13 +3592,16 @@
             return;
         }
 
-        let targetTabKey = brand === 'tony' ? 'tony-restock' : 'sanvees-restock';
-
-        // Duplicate Check Across All Tabs (Bangla & English)
-        let dup = findDuplicateAcrossAllTabs(orderNo);
+        // Duplicate Check only in current restock list (Bangla & English)
+        let dup = findDuplicateInList(cachedRestockOrders[brand], orderNo);
         if (dup) {
-            showToast(`⚠️ এই নাম্বারটি (${dup.matchedNumber}) ইতিমধ্যে "${dup.tabDisplayName}" এ বিদ্যমান!`, "warning");
-            openDuplicateAlertModal(dup, targetTabKey, { orderNo, productName, orderReason, amount });
+            showToast(`⚠️ এই নাম্বারটি (${dup.matchedNumber}) ইতিমধ্যে এই রিস্টক তালিকায় বিদ্যমান! একই পেজে ২ বার যোগ করা যাবে না।`, "error");
+            let existingRow = document.getElementById(`restockRow_${brand}_${dup.originalIndex}`);
+            if (existingRow) {
+                existingRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                existingRow.classList.add('highlight-flash');
+                setTimeout(() => existingRow.classList.remove('highlight-flash'), 2500);
+            }
             return;
         }
 
@@ -4317,7 +3818,6 @@
                             <option value="cancelled" ${currentStatus === 'cancelled' ? 'selected' : ''}>❌ Cancelled</option>
                         </select>
                         ${currentStatus !== 'sent' ? `<button class="quick-ship-btn" onclick="quickShipRestock('${brand}', ${originalIndex})" title="Restocked! Mark as Sent">🚀 Send</button>` : ''}
-                        <button type="button" class="shift-btn" onclick="openShiftModal(true, '${brand}', ${originalIndex})" title="Shift / Move Order to Pending or another tab">🔀 Shift</button>
                         <button class="delete-btn admin-only-btn" onclick="promptDeleteRestock('${brand}', ${originalIndex})" title="Move to Recycle Bin">✕</button>
                     </div>
                     <div class="print-cell-text center">
@@ -4354,9 +3854,9 @@
 
         if (field === 'orderNo') {
             let currentId = orders[originalIndex].id;
-            let dup = findDuplicateAcrossAllTabs(newValue, currentId);
+            let dup = findDuplicateInList(orders, newValue, currentId);
             if (dup) {
-                showToast(`⚠️ পরিবর্তন করা যাবে না: নাম্বারটি (${dup.matchedNumber}) ইতিমধ্যে "${dup.tabDisplayName}" এ আছে!`, "error");
+                showToast(`⚠️ পরিবর্তন করা যাবে না: নাম্বারটি (${dup.matchedNumber}) ইতিমধ্যে এই রিস্টক তালিকায় আছে!`, "error");
                 renderRestockTable(brand);
                 return;
             }
