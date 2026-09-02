@@ -3946,21 +3946,52 @@
         function getActiveUserStamp() {
             if (isAdminLoggedIn()) {
                 return {
-                    name: "👑 Admin",
-                    email: "admin@sanvees.com"
+                    name: "Admin",
+                    email: "admin@sanvees.com",
+                    isAdmin: true
                 };
             }
             let user = getCurrentUser();
             if (user) {
                 return {
-                    name: user.name || "Staff",
-                    email: user.email || ""
+                    name: user.name || user.shortName || "Staff",
+                    email: user.email || "",
+                    isAdmin: false
                 };
             }
             return {
                 name: "Staff",
-                email: ""
+                email: "",
+                isAdmin: false
             };
+        }
+
+        function formatAuditTime(isoStr) {
+            if (!isoStr) return '';
+            try {
+                let d = new Date(isoStr);
+                let timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+                let monthStr = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                return `${timeStr}, ${monthStr}`;
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function getAuditLabelHtml(order) {
+            if (!order || !order.statusUpdatedAt) return '';
+            let updatedBy = (order.statusUpdatedBy || '').trim();
+            let updatedByEmail = (order.statusUpdatedByEmail || '').trim().toLowerCase();
+
+            // Strictly suppress audit label if updated by Admin, System, or unknown admin
+            if (!updatedBy || updatedBy.toLowerCase().includes('admin') || updatedByEmail.includes('admin') || updatedBy === 'System') {
+                return '';
+            }
+
+            let staffName = escapeHtml(updatedBy);
+            let timeFormatted = formatAuditTime(order.statusUpdatedAt);
+
+            return `<div class="status-audit-label" title="Updated on ${new Date(order.statusUpdatedAt).toLocaleString()} by ${staffName}">🕒 ${timeFormatted} • <b>${staffName}</b></div>`;
         }
 
         // =========================================================================
@@ -4442,7 +4473,7 @@
                             </select>
                             <button class="delete-btn admin-only-btn" onclick="promptDelete('${type}', ${originalIndex})" title="Move to Recycle Bin">✕</button>
                         </div>
-                        ${order.statusUpdatedAt ? `<div class="status-audit-label" title="Status updated on ${new Date(order.statusUpdatedAt).toLocaleString()} by ${escapeHtml(order.statusUpdatedBy || 'Staff')}${order.statusUpdatedByEmail ? ' (' + escapeHtml(order.statusUpdatedByEmail) + ')' : ''}">🕒 ${formatAuditTime(order.statusUpdatedAt)} • <b>${escapeHtml(order.statusUpdatedBy || 'Staff')}</b>${order.statusUpdatedByEmail ? ' <span style="opacity:0.75;">(' + escapeHtml(order.statusUpdatedByEmail) + ')</span>' : ''}</div>` : ''}
+                        ${getAuditLabelHtml(order)}
                     </div>
                     <div class="print-cell-text center">
                         <span class="print-status-badge ${statusClass}">${statusBadgeText}</span>
@@ -4594,9 +4625,15 @@
             let nowIso = new Date().toISOString();
 
             orders[originalIndex].status = newStatus;
-            orders[originalIndex].statusUpdatedAt = nowIso;
-            orders[originalIndex].statusUpdatedBy = actor.name;
-            orders[originalIndex].statusUpdatedByEmail = actor.email;
+            if (actor.isAdmin) {
+                orders[originalIndex].statusUpdatedAt = null;
+                orders[originalIndex].statusUpdatedBy = null;
+                orders[originalIndex].statusUpdatedByEmail = null;
+            } else {
+                orders[originalIndex].statusUpdatedAt = nowIso;
+                orders[originalIndex].statusUpdatedBy = actor.name;
+                orders[originalIndex].statusUpdatedByEmail = actor.email;
+            }
             orders[originalIndex].statusHistory = orders[originalIndex].statusHistory || [];
             orders[originalIndex].statusHistory.push({
                 from: oldStatus,
@@ -5070,7 +5107,7 @@
                             ${currentStatus !== 'sent' ? `<button class="quick-ship-btn" onclick="quickShipRestock('${brand}', ${originalIndex})" title="Restocked! Mark as Sent">🚀 Send</button>` : ''}
                             <button class="delete-btn admin-only-btn" onclick="promptDeleteRestock('${brand}', ${originalIndex})" title="Move to Recycle Bin">✕</button>
                         </div>
-                        ${order.statusUpdatedAt ? `<div class="status-audit-label" title="Status updated on ${new Date(order.statusUpdatedAt).toLocaleString()} by ${escapeHtml(order.statusUpdatedBy || 'Staff')}${order.statusUpdatedByEmail ? ' (' + escapeHtml(order.statusUpdatedByEmail) + ')' : ''}">🕒 ${formatAuditTime(order.statusUpdatedAt)} • <b>${escapeHtml(order.statusUpdatedBy || 'Staff')}</b>${order.statusUpdatedByEmail ? ' <span style="opacity:0.75;">(' + escapeHtml(order.statusUpdatedByEmail) + ')</span>' : ''}</div>` : ''}
+                        ${getAuditLabelHtml(order)}
                     </div>
                     <div class="print-cell-text center">
                         <span class="print-status-badge ${statusClass}">${statusBadgeText}</span>
@@ -5155,9 +5192,15 @@
             let nowIso = new Date().toISOString();
 
             orders[originalIndex].status = newStatus;
-            orders[originalIndex].statusUpdatedAt = nowIso;
-            orders[originalIndex].statusUpdatedBy = actor.name;
-            orders[originalIndex].statusUpdatedByEmail = actor.email;
+            if (actor.isAdmin) {
+                orders[originalIndex].statusUpdatedAt = null;
+                orders[originalIndex].statusUpdatedBy = null;
+                orders[originalIndex].statusUpdatedByEmail = null;
+            } else {
+                orders[originalIndex].statusUpdatedAt = nowIso;
+                orders[originalIndex].statusUpdatedBy = actor.name;
+                orders[originalIndex].statusUpdatedByEmail = actor.email;
+            }
             orders[originalIndex].statusHistory = orders[originalIndex].statusHistory || [];
             orders[originalIndex].statusHistory.push({
                 from: oldStatus,
@@ -5191,9 +5234,15 @@
             let nowIso = new Date().toISOString();
 
             orders[originalIndex].status = 'sent';
-            orders[originalIndex].statusUpdatedAt = nowIso;
-            orders[originalIndex].statusUpdatedBy = actor.name;
-            orders[originalIndex].statusUpdatedByEmail = actor.email;
+            if (actor.isAdmin) {
+                orders[originalIndex].statusUpdatedAt = null;
+                orders[originalIndex].statusUpdatedBy = null;
+                orders[originalIndex].statusUpdatedByEmail = null;
+            } else {
+                orders[originalIndex].statusUpdatedAt = nowIso;
+                orders[originalIndex].statusUpdatedBy = actor.name;
+                orders[originalIndex].statusUpdatedByEmail = actor.email;
+            }
             orders[originalIndex].statusHistory = orders[originalIndex].statusHistory || [];
             orders[originalIndex].statusHistory.push({
                 from: oldStatus,
