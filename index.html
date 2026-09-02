@@ -2130,7 +2130,7 @@
             </div>
         </div>
 
-        <!-- Main Navigation Tabs: 4 Dedicated Tabs -->
+        <!-- Main Navigation Tabs: 5 Dedicated Tabs -->
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('tony')">
                 <span>✨</span> Sanvee's by Tony
@@ -2143,6 +2143,9 @@
             </button>
             <button class="tab-btn" onclick="switchTab('sanvees-restock')">
                 <span>🔄</span> Restocked Orders
+            </button>
+            <button class="tab-btn" onclick="switchTab('forever')">
+                <span>💎</span> Forever Tony
             </button>
         </div>
 
@@ -2772,6 +2775,162 @@
                 <span id="printFooterTimestampSanveesRestock"></span>
             </div>
         </div>
+
+        <!-- ========================================================================= -->
+        <!-- TAB 5: Forever Tony (Pendings) -->
+        <!-- ========================================================================= -->
+        <div id="tab-forever" class="tab-content">
+            <!-- Print Header -->
+            <div class="print-header-block" id="printHeaderForever">
+                <div class="print-header-top">
+                    <div class="print-logo-container">
+                        <div class="sanvees-brand-lockup">
+                            <span style="font-size: 28px;">💎</span>
+                            <div class="sanvees-brand-text-box">
+                                <span class="sanvees-brand-name-styled" style="color: #4f46e5 !important; -webkit-text-fill-color: #4f46e5 !important;">Forever Tony</span>
+                                <span class="sanvees-brand-subtitle" style="color: #6366f1 !important;">EXCLUSIVE PENDING ORDERS PORTAL</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="print-doc-meta">
+                        <div class="print-doc-badge" style="background: #4f46e5 !important;">PENDING ORDERS STATEMENT</div>
+                        <div class="print-doc-date" id="printDocDateForever">Date: Aug 25, 2026</div>
+                    </div>
+                </div>
+                <div class="print-summary-boxes">
+                    <div class="print-summary-box blue">
+                        <strong>Total Orders</strong>
+                        <span id="printForeverTotalCount">0</span>
+                    </div>
+                    <div class="print-summary-box amber">
+                        <strong>Pending Orders</strong>
+                        <span id="printForeverPendingCount">0</span>
+                    </div>
+                    <div class="print-summary-box amber">
+                        <strong>Pending Amount</strong>
+                        <span id="printForeverPendingAmt">Tk 0</span>
+                    </div>
+                    <div class="print-summary-box emerald">
+                        <strong>Sent Amount</strong>
+                        <span id="printForeverSentAmt">Tk 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <div class="stat-icon blue">📋</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Orders</span>
+                        <span class="stat-value" id="foreverStatTotal">0</span>
+                        <span class="stat-sub">For this date</span>
+                    </div>
+                </div>
+                <div class="stat-card amber">
+                    <div class="stat-icon amber">⏳</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Pending</span>
+                        <span class="stat-value" id="foreverStatPendingAmt">Tk 0</span>
+                        <span class="stat-sub" id="foreverStatPendingCount">0 orders</span>
+                    </div>
+                </div>
+                <div class="stat-card emerald">
+                    <div class="stat-icon emerald">🚚</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Parcel Sent</span>
+                        <span class="stat-value" id="foreverStatSentAmt">Tk 0</span>
+                        <span class="stat-sub" id="foreverStatSentCount">0 orders</span>
+                    </div>
+                </div>
+                <div class="stat-card rose">
+                    <div class="stat-icon rose">❌</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Cancelled</span>
+                        <span class="stat-value" id="foreverStatCancelledCount">0</span>
+                        <span class="stat-sub" id="foreverStatCancelledAmt">Tk 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Order Form -->
+            <div class="form-card">
+                <div class="form-card-header">
+                    <div class="form-card-title">
+                        <div class="sanvees-brand-lockup" style="gap: 8px;">
+                            <span style="font-size: 20px;">💎</span>
+                            <span>➕ Add New Pending Order (Forever Tony)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="foreverOrderNo" class="input-order"
+                        placeholder="Order No / Customer Phone (e.g. 017...)"
+                        onkeypress="handleFormEnter(event, 'forever')">
+                    <input type="text" id="foreverReason" class="input-reason" placeholder="Pending Reason"
+                        onkeypress="handleFormEnter(event, 'forever')">
+                    <input type="number" id="foreverAmount" class="input-amount" placeholder="Amount (BDT)"
+                        onkeypress="handleFormEnter(event, 'forever')">
+                    <button class="btn add-btn" onclick="addOrder('forever')">➕ Add Order</button>
+                </div>
+            </div>
+
+            <!-- Filter & Search Toolbar -->
+            <div class="toolbar">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="foreverSearchInput"
+                        placeholder="Search order, customer, phone, or reason (Bangla & English)..."
+                        oninput="filterOrders('forever')">
+                </div>
+
+                <div class="filter-chips">
+                    <button class="chip active" onclick="setStatusFilter('forever', 'all')" id="foreverFilterAll">All
+                        <span class="chip-count" id="foreverChipAll">0</span></button>
+                    <button class="chip" onclick="setStatusFilter('forever', 'pending')" id="foreverFilterPending">⏳
+                        Pending <span class="chip-count" id="foreverChipPending">0</span></button>
+                    <button class="chip" onclick="setStatusFilter('forever', 'sent')" id="foreverFilterSent">🚚 Sent
+                        <span class="chip-count" id="foreverChipSent">0</span></button>
+                    <button class="chip" onclick="setStatusFilter('forever', 'cancelled')" id="foreverFilterCancelled">❌
+                        Cancelled <span class="chip-count" id="foreverChipCancelled">0</span></button>
+                </div>
+
+                <div class="action-btns">
+                    <button class="action-btn export" onclick="exportToCSV('forever')" title="Export to Excel CSV">📊
+                        Export Excel</button>
+                    <button class="action-btn print" onclick="preparePrint('forever')" title="Print / PDF">🖨️ Print
+                        Report</button>
+                </div>
+            </div>
+
+            <!-- Active Filter Alert -->
+            <div id="foreverFilterAlert" style="display:none;" class="filter-alert-bar">
+                <span id="foreverFilterAlertText">Showing filtered list</span>
+                <button class="filter-clear-link" onclick="setStatusFilter('forever', 'all')">Clear Filter (Show
+                    All)</button>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="5%">#</th>
+                            <th width="26%">Order No / Customer</th>
+                            <th width="37%">Pending Reason</th>
+                            <th width="14%">Amount (BDT)</th>
+                            <th width="18%">Status / Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="foreverTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="print-footer">
+                <span>Generated from Forever Tony Pending Portal</span>
+                <span id="printFooterTimestampForever"></span>
+            </div>
+        </div>
     </div>
 
     <!-- ========================================================================= -->
@@ -2806,6 +2965,7 @@
                 <button class="chip" onclick="setGlobalBrandFilter('sanvees')" id="globalBrandSanvees">Sanvee's</button>
                 <button class="chip" onclick="setGlobalBrandFilter('sanvees-restock')"
                     id="globalBrandSanveesRestock">Sanvee's Restock</button>
+                <button class="chip" onclick="setGlobalBrandFilter('forever')" id="globalBrandForever">Forever Tony</button>
 
                 <span
                     style="margin-left: 10px; font-size:12px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Status:</span>
@@ -3198,11 +3358,12 @@
 
     <script>
         let deleteTarget = null;
-        let activeTab = 'tony'; // 'tony', 'tony-restock', 'sanvees', 'sanvees-restock'
+        let activeTab = 'tony'; // 'tony', 'tony-restock', 'sanvees', 'sanvees-restock', 'forever'
 
         let currentFilters = {
             tony: { status: 'all', search: '' },
-            sanvees: { status: 'all', search: '' }
+            sanvees: { status: 'all', search: '' },
+            forever: { status: 'all', search: '' }
         };
         let currentRestockFilters = {
             tony: { status: 'all', search: '' },
@@ -3211,7 +3372,8 @@
 
         let cachedOrders = {
             tony: [],
-            sanvees: []
+            sanvees: [],
+            forever: []
         };
         let cachedRestockOrders = {
             tony: [],
@@ -4028,6 +4190,7 @@
             // Auto carry forward regular pending orders (without deleting duplicates)
             await checkAndCarryForwardPendingOrders('tony', todayStr);
             await checkAndCarryForwardPendingOrders('sanvees', todayStr);
+            await checkAndCarryForwardPendingOrders('forever', todayStr);
 
             // Auto carry forward restock waiting orders
             await checkAndCarryForwardRestockOrders('tony', todayStr);
@@ -4035,6 +4198,7 @@
 
             await loadOrders('tony');
             await loadOrders('sanvees');
+            await loadOrders('forever');
             await loadRestockOrders('tony');
             await loadRestockOrders('sanvees');
 
@@ -4118,7 +4282,8 @@
                 'tony': { btnIndex: 1, contentId: 'tab-tony' },
                 'tony-restock': { btnIndex: 2, contentId: 'tab-tony-restock' },
                 'sanvees': { btnIndex: 3, contentId: 'tab-sanvees' },
-                'sanvees-restock': { btnIndex: 4, contentId: 'tab-sanvees-restock' }
+                'sanvees-restock': { btnIndex: 4, contentId: 'tab-sanvees-restock' },
+                'forever': { btnIndex: 5, contentId: 'tab-forever' }
             };
 
             const target = tabMap[tabName];
@@ -4138,11 +4303,13 @@
             let selectedDate = await getActiveDate();
             await checkAndCarryForwardPendingOrders('tony', selectedDate);
             await checkAndCarryForwardPendingOrders('sanvees', selectedDate);
+            await checkAndCarryForwardPendingOrders('forever', selectedDate);
             await checkAndCarryForwardRestockOrders('tony', selectedDate);
             await checkAndCarryForwardRestockOrders('sanvees', selectedDate);
 
             await loadOrders('tony');
             await loadOrders('sanvees');
+            await loadOrders('forever');
             await loadRestockOrders('tony');
             await loadRestockOrders('sanvees');
             showToast('Loaded orders for ' + selectedDate, 'info');
@@ -4379,7 +4546,7 @@
             document.getElementById(type + 'ChipCancelled').innerText = cancelledCount;
 
             // Print Header Metrics
-            let capType = type === 'tony' ? 'Tony' : 'Sanvees';
+            let capType = type === 'tony' ? 'Tony' : (type === 'forever' ? 'Forever' : 'Sanvees');
             let printTotalEl = document.getElementById(`print${capType}TotalCount`);
             let printPendingCountEl = document.getElementById(`print${capType}PendingCount`);
             let printPendingAmtEl = document.getElementById(`print${capType}PendingAmt`);
@@ -5368,7 +5535,7 @@
 
         function setGlobalBrandFilter(brand) {
             globalBrandFilter = brand;
-            const brands = ['all', 'tony', 'tony-restock', 'sanvees', 'sanvees-restock'];
+            const brands = ['all', 'tony', 'tony-restock', 'sanvees', 'sanvees-restock', 'forever'];
             brands.forEach(b => {
                 const btn = document.getElementById('globalBrand' + b.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''));
                 if (btn) {
@@ -5410,7 +5577,7 @@
             let results = [];
 
             // 1. Scan Standard Orders
-            for (let brandKey of ['tony', 'sanvees']) {
+            for (let brandKey of ['tony', 'sanvees', 'forever']) {
                 if (globalBrandFilter !== 'all' && globalBrandFilter !== brandKey) continue;
                 let brandObj = allOrders[brandKey] || {};
                 for (let dateStr of Object.keys(brandObj).sort().reverse()) {
@@ -5479,6 +5646,7 @@
                 let tabTarget = "";
                 if (r.type === 'order') {
                     if (r.brand === 'tony') { brandBadge = `<span class="tag-badge tag-tony">Tony Pendings</span>`; tabTarget = 'tony'; }
+                    else if (r.brand === 'forever') { brandBadge = `<span class="tag-badge tag-forever" style="background:#e0e7ff; color:#4338ca; border:1px solid #c7d2fe;">Forever Tony</span>`; tabTarget = 'forever'; }
                     else { brandBadge = `<span class="tag-badge tag-sanvees">Sanvee's</span>`; tabTarget = 'sanvees'; }
                 } else {
                     if (r.brand === 'tony') { brandBadge = `<span class="tag-badge tag-restock">Tony Restock</span>`; tabTarget = 'tony-restock'; }
@@ -5612,8 +5780,8 @@
             csvContent += "Category,Brand,Date,SL,Customer / Order No,Product Code / Note,Amount (BDT),Status\n";
 
             // Standard Orders
-            for (let brand of ['tony', 'sanvees']) {
-                let brandName = brand === 'tony' ? "Sanvee's by Tony" : "Sanvee's";
+            for (let brand of ['tony', 'sanvees', 'forever']) {
+                let brandName = brand === 'tony' ? "Sanvee's by Tony" : (brand === 'forever' ? "Forever Tony" : "Sanvee's");
                 let brandObj = (fullData.orders && fullData.orders[brand]) || {};
                 for (let dateStr of Object.keys(brandObj).sort()) {
                     let items = brandObj[dateStr] || [];
@@ -5658,7 +5826,7 @@
             let selectedDate = await getActiveDate();
             let restoredCount = 0;
 
-            for (let brand of ['tony', 'sanvees']) {
+            for (let brand of ['tony', 'sanvees', 'forever']) {
                 let key = `sanvees_local_orders_${brand}_${selectedDate}`;
                 let raw = localStorage.getItem(key);
                 if (raw) {
@@ -5690,6 +5858,7 @@
                 showToast(`✅ Restored ${restoredCount} orders from your browser's local snapshot!`, 'success');
                 await loadOrders('tony');
                 await loadOrders('sanvees');
+                await loadOrders('forever');
                 await loadRestockOrders('tony');
                 await loadRestockOrders('sanvees');
                 closeBackupModal();
@@ -5730,7 +5899,7 @@
             let keys = Object.keys(trash).reverse();
             keys.forEach(k => {
                 let item = trash[k];
-                let brandLabel = item.isRestock ? `${item.brand === 'tony' ? "Tony Restock" : "Sanvee's Restock"}` : `${item.brand === 'tony' ? "Tony Pendings" : "Sanvee's"}`;
+                let brandLabel = item.isRestock ? `${item.brand === 'tony' ? "Tony Restock" : "Sanvee's Restock"}` : `${item.brand === 'tony' ? "Tony Pendings" : (item.brand === 'forever' ? "Forever Tony" : "Sanvee's")}`;
                 let desc = item.isRestock ? `[${item.productName || ''}] ${item.orderReason || ''}` : (item.orderReason || '');
                 let amt = (item.amount || 0).toLocaleString();
 
@@ -5831,7 +6000,7 @@
         async function exportToCSV(type) {
             let orders = cachedOrders[type] || [];
             let selectedDate = await getActiveDate();
-            let brandName = type === 'tony' ? "Sanvee's by Tony" : "Sanvee's";
+            let brandName = type === 'tony' ? "Sanvee's by Tony" : (type === 'forever' ? "Forever Tony" : "Sanvee's");
 
             if (orders.length === 0) {
                 showToast("No orders to export!", "error");
@@ -5919,7 +6088,7 @@
 
         function preparePrint(type) {
             let selectedDate = document.getElementById('checkDateInput').value;
-            let cap = type === 'tony' ? 'Tony' : 'Sanvees';
+            let cap = type === 'tony' ? 'Tony' : (type === 'forever' ? 'Forever' : 'Sanvees');
             let dateEl = document.getElementById(`printDocDate${cap}`);
             let timestampEl = document.getElementById(`printFooterTimestamp${cap}`);
 
