@@ -16,7 +16,7 @@
     <!-- Firebase SDK (Modular v10) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, child, remove, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, get, child, remove, push, onValue, off } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBvrbLXqMHsTG2N3eePFFO900luktM4W60",
@@ -31,6 +31,79 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+
+        function normalizeFirebaseArray(val) {
+            if (!val) return [];
+            if (Array.isArray(val)) return val.filter(Boolean);
+            if (typeof val === 'object') {
+                return Object.values(val).filter(Boolean);
+            }
+            return [];
+        }
+
+        let activeRealtimeUnsubs = [];
+
+        // Real-time Live Listeners (WebSockets - Instant multi-device sync)
+        window.fbListenOrders = function (type, dateStr, callback) {
+            try {
+                const orderRef = ref(db, `orders/${type}/${dateStr}`);
+                const unsubscribe = onValue(orderRef, (snapshot) => {
+                    const data = snapshot.exists() ? normalizeFirebaseArray(snapshot.val()) : [];
+                    window.syncLocalBackup('orders', type, dateStr, data);
+                    callback(data);
+                }, (error) => {
+                    console.error(`Live listener error on orders/${type}/${dateStr}:`, error);
+                });
+                activeRealtimeUnsubs.push(unsubscribe);
+                return unsubscribe;
+            } catch (error) {
+                console.error("Error setting up live orders listener:", error);
+                return null;
+            }
+        };
+
+        window.fbListenRestockOrders = function (brand, dateStr, callback) {
+            try {
+                const restockRef = ref(db, `restock_orders/${brand}/${dateStr}`);
+                const unsubscribe = onValue(restockRef, (snapshot) => {
+                    const data = snapshot.exists() ? normalizeFirebaseArray(snapshot.val()) : [];
+                    window.syncLocalBackup('restock_orders', brand, dateStr, data);
+                    callback(data);
+                }, (error) => {
+                    console.error(`Live listener error on restock_orders/${brand}/${dateStr}:`, error);
+                });
+                activeRealtimeUnsubs.push(unsubscribe);
+                return unsubscribe;
+            } catch (error) {
+                console.error("Error setting up live restock listener:", error);
+                return null;
+            }
+        };
+
+        window.fbListenTrash = function (callback) {
+            try {
+                const trashRef = ref(db, 'trash_orders');
+                const unsubscribe = onValue(trashRef, (snapshot) => {
+                    const data = snapshot.exists() ? snapshot.val() : {};
+                    callback(data);
+                }, (error) => {
+                    console.error("Live trash listener error:", error);
+                });
+                return unsubscribe;
+            } catch (error) {
+                console.error("Error setting up live trash listener:", error);
+                return null;
+            }
+        };
+
+        window.fbUnsubscribeAllListeners = function () {
+            activeRealtimeUnsubs.forEach(unsub => {
+                if (typeof unsub === 'function') {
+                    try { unsub(); } catch (e) { }
+                }
+            });
+            activeRealtimeUnsubs = [];
+        };
 
         // Standard Orders Handlers
         window.fbSaveOrder = async function (type, dateStr, orders) {
@@ -49,7 +122,7 @@
             try {
                 const snapshot = await get(child(ref(db), `orders/${type}/${dateStr}`));
                 if (snapshot.exists()) {
-                    const data = snapshot.val();
+                    const data = normalizeFirebaseArray(snapshot.val());
                     window.syncLocalBackup('orders', type, dateStr, data);
                     return data;
                 } else {
@@ -93,7 +166,7 @@
             try {
                 const snapshot = await get(child(ref(db), `restock_orders/${brand}/${dateStr}`));
                 if (snapshot.exists()) {
-                    const data = snapshot.val();
+                    const data = normalizeFirebaseArray(snapshot.val());
                     window.syncLocalBackup('restock_orders', brand, dateStr, data);
                     return data;
                 } else {
@@ -4178,7 +4251,7 @@
         }
 
         // =========================================================================
-        // APP INITIALIZATION
+        // APP INITIALIZATION & REAL-TIME WEBSOCKET SYNC
         // =========================================================================
         document.addEventListener("DOMContentLoaded", async () => {
             initTheme();
@@ -4202,6 +4275,12 @@
             await loadRestockOrders('tony');
             await loadRestockOrders('sanvees');
 
+            // Attach Real-Time Live Sync Listeners across all tabs & trash
+            setupLiveRealtimeSync(todayStr);
+            if (window.fbListenTrash) {
+                window.fbListenTrash(() => updateTrashBadge());
+            }
+
             updateTrashBadge();
 
             // Keyboard Shortcuts
@@ -4222,6 +4301,51 @@
                 }
             });
         });
+
+        // Setup Instant Real-Time WebSocket Listeners
+        function setupLiveRealtimeSync(selectedDate) {
+            if (!window.fbListenOrders) return;
+
+            // Unsubscribe existing listeners to avoid duplicates
+            if (window.fbUnsubscribeAllListeners) {
+                window.fbUnsubscribeAllListeners();
+            }
+
+            // 1. Live Sync for Tony Pendings
+            window.fbListenOrders('tony', selectedDate, (orders) => {
+                cachedOrders['tony'] = orders || [];
+                updateDashboardStats('tony', cachedOrders['tony']);
+                renderFilteredTable('tony');
+            });
+
+            // 2. Live Sync for Sanvee's Pendings
+            window.fbListenOrders('sanvees', selectedDate, (orders) => {
+                cachedOrders['sanvees'] = orders || [];
+                updateDashboardStats('sanvees', cachedOrders['sanvees']);
+                renderFilteredTable('sanvees');
+            });
+
+            // 3. Live Sync for Forever Tony Pendings
+            window.fbListenOrders('forever', selectedDate, (orders) => {
+                cachedOrders['forever'] = orders || [];
+                updateDashboardStats('forever', cachedOrders['forever']);
+                renderFilteredTable('forever');
+            });
+
+            // 4. Live Sync for Tony Restock
+            window.fbListenRestockOrders('tony', selectedDate, (orders) => {
+                cachedRestockOrders['tony'] = orders || [];
+                updateRestockDashboardStats('tony', cachedRestockOrders['tony']);
+                renderRestockTable('tony');
+            });
+
+            // 5. Live Sync for Sanvee's Restock
+            window.fbListenRestockOrders('sanvees', selectedDate, (orders) => {
+                cachedRestockOrders['sanvees'] = orders || [];
+                updateRestockDashboardStats('sanvees', cachedRestockOrders['sanvees']);
+                renderRestockTable('sanvees');
+            });
+        }
 
         // Theme Switcher
         function initTheme() {
@@ -4312,6 +4436,10 @@
             await loadOrders('forever');
             await loadRestockOrders('tony');
             await loadRestockOrders('sanvees');
+
+            // Re-bind live sync listeners for the new date
+            setupLiveRealtimeSync(selectedDate);
+
             showToast('Loaded orders for ' + selectedDate, 'info');
         }
 
