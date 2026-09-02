@@ -1212,11 +1212,18 @@
             font-size: 10px;
             color: var(--text-muted);
             font-weight: 600;
-            white-space: nowrap;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-top: 3px;
+            line-height: 1.35;
+        }
+
+        .status-audit-item {
             display: flex;
             align-items: center;
             gap: 3px;
-            margin-top: 3px;
+            white-space: nowrap;
         }
 
         /* Admin Security & Role-Based Isolation */
@@ -3979,19 +3986,33 @@
         }
 
         function getAuditLabelHtml(order) {
-            if (!order || !order.statusUpdatedAt) return '';
-            let updatedBy = (order.statusUpdatedBy || '').trim();
-            let updatedByEmail = (order.statusUpdatedByEmail || '').trim().toLowerCase();
+            if (!order) return '';
 
-            // Strictly suppress audit label if updated by Admin, System, or unknown admin
-            if (!updatedBy || updatedBy.toLowerCase().includes('admin') || updatedByEmail.includes('admin') || updatedBy === 'System') {
-                return '';
+            let items = [];
+
+            // 1. Creator Audit (Shown if added by a staff/moderator)
+            let createdBy = (order.createdBy || '').trim();
+            let createdByEmail = (order.createdByEmail || '').trim().toLowerCase();
+            let isCreatedByAdmin = !createdBy || createdBy.toLowerCase().includes('admin') || createdByEmail.includes('admin') || createdBy === 'System';
+
+            if (!isCreatedByAdmin) {
+                let createdTime = order.createdAt ? formatAuditTime(order.createdAt) : '';
+                items.push(`<span class="status-audit-item" title="Added by ${escapeHtml(createdBy)}">➕ Added: <b>${escapeHtml(createdBy)}</b>${createdTime ? ' <span style="opacity:0.75;">(' + createdTime + ')</span>' : ''}</span>`);
             }
 
-            let staffName = escapeHtml(updatedBy);
-            let timeFormatted = formatAuditTime(order.statusUpdatedAt);
+            // 2. Dropdown Status Updater Audit (Shown if updated by a staff/moderator)
+            let updatedBy = (order.statusUpdatedBy || '').trim();
+            let updatedByEmail = (order.statusUpdatedByEmail || '').trim().toLowerCase();
+            let isUpdatedByAdmin = !updatedBy || updatedBy.toLowerCase().includes('admin') || updatedByEmail.includes('admin') || updatedBy === 'System';
 
-            return `<div class="status-audit-label" title="Updated on ${new Date(order.statusUpdatedAt).toLocaleString()} by ${staffName}">🕒 ${timeFormatted} • <b>${staffName}</b></div>`;
+            if (!isUpdatedByAdmin && order.statusUpdatedAt) {
+                let updatedTime = formatAuditTime(order.statusUpdatedAt);
+                items.push(`<span class="status-audit-item" title="Status updated by ${escapeHtml(updatedBy)}">🕒 ${updatedTime} • <b>${escapeHtml(updatedBy)}</b></span>`);
+            }
+
+            if (items.length === 0) return '';
+
+            return `<div class="status-audit-label">${items.join('')}</div>`;
         }
 
         // =========================================================================
@@ -4212,7 +4233,13 @@
                         orderNo: pastOrder.orderNo || '',
                         orderReason: pastOrder.orderReason || '',
                         amount: pastOrder.amount !== undefined ? pastOrder.amount : 0,
-                        status: 'pending'
+                        status: 'pending',
+                        createdBy: pastOrder.createdBy || undefined,
+                        createdByEmail: pastOrder.createdByEmail || undefined,
+                        createdAt: pastOrder.createdAt || undefined,
+                        statusUpdatedBy: pastOrder.statusUpdatedBy || undefined,
+                        statusUpdatedByEmail: pastOrder.statusUpdatedByEmail || undefined,
+                        statusUpdatedAt: pastOrder.statusUpdatedAt || undefined
                     });
                     finalKeys.add(key);
                     addedCount++;
@@ -4267,9 +4294,27 @@
                 return;
             }
 
+            let actor = getActiveUserStamp();
+            let nowIso = new Date().toISOString();
+
             let orders = (await window.fbLoadOrders(type, selectedDate)) || [];
             let id = 'ord_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7);
-            orders.push({ id, orderNo, orderReason, amount, status: 'pending' });
+            
+            let newOrder = {
+                id,
+                orderNo,
+                orderReason,
+                amount,
+                status: 'pending'
+            };
+
+            if (!actor.isAdmin) {
+                newOrder.createdBy = actor.name;
+                newOrder.createdByEmail = actor.email;
+                newOrder.createdAt = nowIso;
+            }
+
+            orders.push(newOrder);
             await window.fbSaveOrder(type, selectedDate, orders);
 
             orderNoInput.value = "";
@@ -4828,7 +4873,13 @@
                         productName: info.order.productName || '',
                         orderReason: info.order.orderReason || 'Awaiting Restock',
                         amount: info.order.amount !== undefined ? info.order.amount : 0,
-                        status: info.status || 'awaiting'
+                        status: info.status || 'awaiting',
+                        createdBy: info.order.createdBy || undefined,
+                        createdByEmail: info.order.createdByEmail || undefined,
+                        createdAt: info.order.createdAt || undefined,
+                        statusUpdatedBy: info.order.statusUpdatedBy || undefined,
+                        statusUpdatedByEmail: info.order.statusUpdatedByEmail || undefined,
+                        statusUpdatedAt: info.order.statusUpdatedAt || undefined
                     });
                     finalKeys.add(key);
                     addedCount++;
@@ -4891,17 +4942,28 @@
                 return;
             }
 
+            let actor = getActiveUserStamp();
+            let nowIso = new Date().toISOString();
+
             let orders = (await window.fbLoadRestockOrders(brand, selectedDate)) || [];
             let id = 'rst_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7);
-            orders.push({
+            
+            let newRestockOrder = {
                 id,
                 orderNo,
                 productName,
                 orderReason: orderReason || 'Awaiting Restock',
                 amount,
                 status: 'awaiting'
-            });
+            };
 
+            if (!actor.isAdmin) {
+                newRestockOrder.createdBy = actor.name;
+                newRestockOrder.createdByEmail = actor.email;
+                newRestockOrder.createdAt = nowIso;
+            }
+
+            orders.push(newRestockOrder);
             await window.fbSaveRestockOrders(brand, selectedDate, orders);
 
             orderNoInput.value = "";
