@@ -4674,93 +4674,91 @@
                 return ts > 0 && targetTs > 0 && ts < targetTs;
             }).sort((a, b) => parseDateToTimestamp(a) - parseDateToTimestamp(b));
 
-            if (pastDates.length === 0 && targetDateOrders.length === 0) return;
+            // Find the immediate previous date with data
+            const prevDate = pastDates.length > 0 ? pastDates[pastDates.length - 1] : null;
+            let prevOrders = prevDate ? normalizeFirebaseArray(allDatesData[prevDate]) : [];
 
-            // 1. Scan past dates in chronological order
-            let activePastPendings = new Map(); // orderKey -> { order, sourceDate }
-            let resolvedPastKeys = new Set(); // orderKey of orders marked 'sent' or 'cancelled' in past
+            // Orders in previous date that are currently PENDING
+            let prevPendingMap = new Map(); // key -> order
+            let prevResolvedKeys = new Set(); // keys of orders marked sent/cancelled on previous date
 
-            for (let pDate of pastDates) {
-                let dayOrders = normalizeFirebaseArray(allDatesData[pDate]);
-                for (let order of dayOrders) {
-                    let key = getOrderUniqueKey(order);
-                    if (!key) continue;
-
-                    let st = order.status || 'pending';
-                    if (st === 'sent' || st === 'cancelled') {
-                        resolvedPastKeys.add(key);
-                        activePastPendings.delete(key);
-                    } else if (st === 'pending') {
-                        resolvedPastKeys.delete(key);
-                        activePastPendings.set(key, { order, sourceDate: order.sourceDate || pDate });
-                    }
+            for (let order of prevOrders) {
+                let key = getOrderUniqueKey(order);
+                if (!key) continue;
+                let st = order.status || 'pending';
+                if (st === 'sent' || st === 'cancelled') {
+                    prevResolvedKeys.add(key);
+                } else if (st === 'pending') {
+                    prevPendingMap.set(key, order);
                 }
             }
 
-            // 2. Scan target date orders
-            let targetKeysMap = new Map();
-            let targetResolvedKeys = new Set();
-            let deduplicatedTarget = [];
-            let seenTargetKeys = new Set();
+            // Build clean targetDate list:
+            let finalOrders = [];
+            let seenKeys = new Set();
 
             for (let order of targetDateOrders) {
                 let key = getOrderUniqueKey(order);
-                if (!key) {
-                    deduplicatedTarget.push(order);
+                let st = order.status || 'pending';
+
+                // If marked sent or cancelled on target date, keep it
+                if (st === 'sent' || st === 'cancelled') {
+                    if (key && !seenKeys.has(key)) {
+                        seenKeys.add(key);
+                        finalOrders.push(order);
+                    }
                     continue;
                 }
 
-                let st = order.status || 'pending';
-                if (st === 'sent' || st === 'cancelled') {
-                    targetResolvedKeys.add(key);
-                    resolvedPastKeys.add(key);
-                    activePastPendings.delete(key);
+                // If it was marked sent or cancelled on the previous day, discard stale pending copy
+                if (key && prevResolvedKeys.has(key)) {
+                    continue;
                 }
 
-                if (!seenTargetKeys.has(key)) {
-                    seenTargetKeys.add(key);
-                    deduplicatedTarget.push(order);
-                    targetKeysMap.set(key, order);
+                // If it is in yesterday's pending list, keep it
+                if (key && prevPendingMap.has(key)) {
+                    if (!seenKeys.has(key)) {
+                        seenKeys.add(key);
+                        finalOrders.push(order);
+                    }
+                    continue;
+                }
+
+                // If it was carried from an ancient past date that is not prevDate, discard it
+                let srcDate = order.sourceDate;
+                if (srcDate && srcDate !== targetDateStr && srcDate !== prevDate) {
+                    continue;
+                }
+
+                // Otherwise, it is an order created directly on this target date
+                if (!key || !seenKeys.has(key)) {
+                    if (key) seenKeys.add(key);
+                    finalOrders.push(order);
                 }
             }
 
-            // 3. Filter target date orders:
-            // Remove stale pending copies if marked sent/cancelled on past dates
-            let finalOrders = deduplicatedTarget.filter(order => {
-                let key = getOrderUniqueKey(order);
-                if (!key) return true;
-                let st = order.status || 'pending';
-                if (st === 'sent' || st === 'cancelled') return true;
-                if (resolvedPastKeys.has(key)) return false;
-                return true;
-            });
-
-            let finalKeys = new Set(finalOrders.map(o => getOrderUniqueKey(o)).filter(k => !!k));
-            let addedCount = 0;
-
-            // 4. Carry forward active pending orders from past to target date
-            activePastPendings.forEach(({ order: pastOrder, sourceDate }, key) => {
-                if (!resolvedPastKeys.has(key) && !targetResolvedKeys.has(key) && !finalKeys.has(key)) {
+            // Add any pending orders from previous date that are not yet in finalOrders
+            prevPendingMap.forEach((pastOrder, key) => {
+                if (!seenKeys.has(key) && !prevResolvedKeys.has(key)) {
                     let carriedOrder = {
                         id: pastOrder.id || ('ord_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7)),
                         orderNo: pastOrder.orderNo || '',
                         orderReason: pastOrder.orderReason || '',
                         amount: pastOrder.amount !== undefined ? pastOrder.amount : 0,
                         status: 'pending',
-                        sourceDate: sourceDate
+                        sourceDate: pastOrder.sourceDate || prevDate
                     };
                     if (pastOrder.createdBy) carriedOrder.createdBy = pastOrder.createdBy;
                     if (pastOrder.createdByEmail) carriedOrder.createdByEmail = pastOrder.createdByEmail;
                     if (pastOrder.createdAt) carriedOrder.createdAt = pastOrder.createdAt;
 
                     finalOrders.push(carriedOrder);
-                    finalKeys.add(key);
-                    addedCount++;
+                    seenKeys.add(key);
                 }
             });
 
-            // 5. If target date data changed, update Firebase and local state
-            if (finalOrders.length !== targetDateOrders.length || addedCount > 0) {
+            // Save if finalOrders differs from targetDateOrders
+            if (JSON.stringify(finalOrders) !== JSON.stringify(targetDateOrders)) {
                 await window.fbSaveOrder(type, targetDateStr, finalOrders);
                 if (cachedOrders && (await getActiveDate()) === targetDateStr) {
                     cachedOrders[type] = finalOrders;
@@ -5330,73 +5328,64 @@
                 return ts > 0 && targetTs > 0 && ts < targetTs;
             }).sort((a, b) => parseDateToTimestamp(a) - parseDateToTimestamp(b));
 
-            if (pastDates.length === 0 && targetDateOrders.length === 0) return;
+            // Find immediate previous date with data
+            const prevDate = pastDates.length > 0 ? pastDates[pastDates.length - 1] : null;
+            let prevOrders = prevDate ? normalizeFirebaseArray(allDatesData[prevDate]) : [];
 
-            // 1. Scan past dates in chronological order
-            let activePastRestock = new Map(); // key -> { order, status, sourceDate }
-            let resolvedPastKeys = new Set(); // orders marked 'sent' or 'cancelled' in past
+            let prevPendingMap = new Map(); // key -> { order, status }
+            let prevResolvedKeys = new Set();
 
-            for (let pDate of pastDates) {
-                let dayOrders = normalizeFirebaseArray(allDatesData[pDate]);
-                for (let order of dayOrders) {
-                    let key = getOrderUniqueKey(order);
-                    if (!key) continue;
-
-                    let st = order.status || 'awaiting';
-                    if (st === 'sent' || st === 'cancelled') {
-                        resolvedPastKeys.add(key);
-                        activePastRestock.delete(key);
-                    } else if (st === 'awaiting' || st === 'ready') {
-                        resolvedPastKeys.delete(key);
-                        activePastRestock.set(key, { order, status: st, sourceDate: order.sourceDate || pDate });
-                    }
+            for (let order of prevOrders) {
+                let key = getOrderUniqueKey(order);
+                if (!key) continue;
+                let st = order.status || 'awaiting';
+                if (st === 'sent' || st === 'cancelled') {
+                    prevResolvedKeys.add(key);
+                } else if (st === 'awaiting' || st === 'ready') {
+                    prevPendingMap.set(key, { order, status: st });
                 }
             }
 
-            // 2. Scan target date orders
-            let targetKeysMap = new Map();
-            let targetResolvedKeys = new Set();
-            let deduplicatedTarget = [];
-            let seenTargetKeys = new Set();
+            let finalOrders = [];
+            let seenKeys = new Set();
 
             for (let order of targetDateOrders) {
                 let key = getOrderUniqueKey(order);
-                if (!key) {
-                    deduplicatedTarget.push(order);
+                let st = order.status || 'awaiting';
+
+                if (st === 'sent' || st === 'cancelled') {
+                    if (key && !seenKeys.has(key)) {
+                        seenKeys.add(key);
+                        finalOrders.push(order);
+                    }
                     continue;
                 }
 
-                let st = order.status || 'awaiting';
-                if (st === 'sent' || st === 'cancelled') {
-                    targetResolvedKeys.add(key);
-                    resolvedPastKeys.add(key);
-                    activePastRestock.delete(key);
+                if (key && prevResolvedKeys.has(key)) {
+                    continue;
                 }
 
-                if (!seenTargetKeys.has(key)) {
-                    seenTargetKeys.add(key);
-                    deduplicatedTarget.push(order);
-                    targetKeysMap.set(key, order);
+                if (key && prevPendingMap.has(key)) {
+                    if (!seenKeys.has(key)) {
+                        seenKeys.add(key);
+                        finalOrders.push(order);
+                    }
+                    continue;
+                }
+
+                let srcDate = order.sourceDate;
+                if (srcDate && srcDate !== targetDateStr && srcDate !== prevDate) {
+                    continue;
+                }
+
+                if (!key || !seenKeys.has(key)) {
+                    if (key) seenKeys.add(key);
+                    finalOrders.push(order);
                 }
             }
 
-            // 3. Filter target date orders:
-            // Remove stale awaiting/ready copies if marked sent/cancelled on past dates
-            let finalOrders = deduplicatedTarget.filter(order => {
-                let key = getOrderUniqueKey(order);
-                if (!key) return true;
-                let st = order.status || 'awaiting';
-                if (st === 'sent' || st === 'cancelled') return true;
-                if (resolvedPastKeys.has(key)) return false;
-                return true;
-            });
-
-            let finalKeys = new Set(finalOrders.map(o => getOrderUniqueKey(o)).filter(k => !!k));
-            let addedCount = 0;
-
-            // 4. Carry forward active awaiting/ready orders from past to target date
-            activePastRestock.forEach(({ order: pastOrder, status: pastStatus, sourceDate }, key) => {
-                if (!resolvedPastKeys.has(key) && !targetResolvedKeys.has(key) && !finalKeys.has(key)) {
+            prevPendingMap.forEach(({ order: pastOrder, status: pastStatus }, key) => {
+                if (!seenKeys.has(key) && !prevResolvedKeys.has(key)) {
                     let carriedOrder = {
                         id: pastOrder.id || ('rst_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7)),
                         orderNo: pastOrder.orderNo || '',
@@ -5404,20 +5393,18 @@
                         orderReason: pastOrder.orderReason || 'Awaiting Restock',
                         amount: pastOrder.amount !== undefined ? pastOrder.amount : 0,
                         status: pastStatus || 'awaiting',
-                        sourceDate: sourceDate
+                        sourceDate: pastOrder.sourceDate || prevDate
                     };
                     if (pastOrder.createdBy) carriedOrder.createdBy = pastOrder.createdBy;
                     if (pastOrder.createdByEmail) carriedOrder.createdByEmail = pastOrder.createdByEmail;
                     if (pastOrder.createdAt) carriedOrder.createdAt = pastOrder.createdAt;
 
                     finalOrders.push(carriedOrder);
-                    finalKeys.add(key);
-                    addedCount++;
+                    seenKeys.add(key);
                 }
             });
 
-            // 5. Save if modified
-            if (finalOrders.length !== targetDateOrders.length || addedCount > 0) {
+            if (JSON.stringify(finalOrders) !== JSON.stringify(targetDateOrders)) {
                 await window.fbSaveRestockOrders(brand, targetDateStr, finalOrders);
                 if (cachedRestockOrders && (await getActiveDate()) === targetDateStr) {
                     cachedRestockOrders[brand] = finalOrders;
