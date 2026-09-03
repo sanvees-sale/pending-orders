@@ -4678,6 +4678,18 @@
             const prevDate = pastDates.length > 0 ? pastDates[pastDates.length - 1] : null;
             let prevOrders = prevDate ? normalizeFirebaseArray(allDatesData[prevDate]) : [];
 
+            // Collect all order keys from dates older than prevDate
+            let olderDatesKeys = new Set();
+            for (let d of pastDates) {
+                if (d !== prevDate) {
+                    let dOrders = normalizeFirebaseArray(allDatesData[d]);
+                    for (let o of dOrders) {
+                        let k = getOrderUniqueKey(o);
+                        if (k) olderDatesKeys.add(k);
+                    }
+                }
+            }
+
             // Orders in previous date that are currently PENDING
             let prevPendingMap = new Map(); // key -> order
             let prevResolvedKeys = new Set(); // keys of orders marked sent/cancelled on previous date
@@ -4712,6 +4724,11 @@
 
                 // If it was marked sent or cancelled on the previous day, discard stale pending copy
                 if (key && prevResolvedKeys.has(key)) {
+                    continue;
+                }
+
+                // If it is an ancient order from dates before prevDate, and was NOT pending yesterday, discard it
+                if (key && olderDatesKeys.has(key) && !prevPendingMap.has(key)) {
                     continue;
                 }
 
@@ -4762,6 +4779,8 @@
                 await window.fbSaveOrder(type, targetDateStr, finalOrders);
                 if (cachedOrders && (await getActiveDate()) === targetDateStr) {
                     cachedOrders[type] = finalOrders;
+                    updateDashboardStats(type, finalOrders);
+                    renderFilteredTable(type);
                 }
             }
         }
@@ -5332,6 +5351,18 @@
             const prevDate = pastDates.length > 0 ? pastDates[pastDates.length - 1] : null;
             let prevOrders = prevDate ? normalizeFirebaseArray(allDatesData[prevDate]) : [];
 
+            // Collect all order keys from dates older than prevDate
+            let olderDatesKeys = new Set();
+            for (let d of pastDates) {
+                if (d !== prevDate) {
+                    let dOrders = normalizeFirebaseArray(allDatesData[d]);
+                    for (let o of dOrders) {
+                        let k = getOrderUniqueKey(o);
+                        if (k) olderDatesKeys.add(k);
+                    }
+                }
+            }
+
             let prevPendingMap = new Map(); // key -> { order, status }
             let prevResolvedKeys = new Set();
 
@@ -5362,6 +5393,10 @@
                 }
 
                 if (key && prevResolvedKeys.has(key)) {
+                    continue;
+                }
+
+                if (key && olderDatesKeys.has(key) && !prevPendingMap.has(key)) {
                     continue;
                 }
 
@@ -5408,6 +5443,8 @@
                 await window.fbSaveRestockOrders(brand, targetDateStr, finalOrders);
                 if (cachedRestockOrders && (await getActiveDate()) === targetDateStr) {
                     cachedRestockOrders[brand] = finalOrders;
+                    updateRestockDashboardStats(brand, finalOrders);
+                    renderRestockTable(brand);
                 }
             }
         }
