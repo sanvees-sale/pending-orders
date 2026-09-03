@@ -4604,7 +4604,7 @@
         }
         window.showToast = showToast;
 
-        function switchTab(tabName) {
+        async function switchTab(tabName) {
             activeTab = tabName;
             document.querySelectorAll('.tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -4623,15 +4623,21 @@
                 document.getElementById(target.contentId).classList.add('active');
             }
 
+            let selDate = await getActiveDate();
             if (tabName === 'tony') {
+                await checkAndCarryForwardPendingOrders('tony', selDate);
                 renderFilteredTable('tony');
             } else if (tabName === 'sanvees') {
+                await checkAndCarryForwardPendingOrders('sanvees', selDate);
                 renderFilteredTable('sanvees');
             } else if (tabName === 'forever') {
+                await checkAndCarryForwardPendingOrders('forever', selDate);
                 renderFilteredTable('forever');
             } else if (tabName === 'tony-restock') {
+                await checkAndCarryForwardRestockOrders('tony', selDate);
                 renderRestockTable('tony');
             } else if (tabName === 'sanvees-restock') {
+                await checkAndCarryForwardRestockOrders('sanvees', selDate);
                 renderRestockTable('sanvees');
             }
         }
@@ -4678,19 +4684,7 @@
             const prevDate = pastDates.length > 0 ? pastDates[pastDates.length - 1] : null;
             let prevOrders = prevDate ? normalizeFirebaseArray(allDatesData[prevDate]) : [];
 
-            // Collect all order keys from dates older than prevDate
-            let olderDatesKeys = new Set();
-            for (let d of pastDates) {
-                if (d !== prevDate) {
-                    let dOrders = normalizeFirebaseArray(allDatesData[d]);
-                    for (let o of dOrders) {
-                        let k = getOrderUniqueKey(o);
-                        if (k) olderDatesKeys.add(k);
-                    }
-                }
-            }
-
-            // Orders in previous date that are currently PENDING
+            // 1. Orders in previous date that are currently PENDING
             let prevPendingMap = new Map(); // key -> order
             let prevResolvedKeys = new Set(); // keys of orders marked sent/cancelled on previous date
 
@@ -4705,7 +4699,7 @@
                 }
             }
 
-            // Build clean targetDate list:
+            // 2. Build clean targetDate list:
             let finalOrders = [];
             let seenKeys = new Set();
 
@@ -4722,17 +4716,12 @@
                     continue;
                 }
 
-                // If it was marked sent or cancelled on the previous day, discard stale pending copy
+                // If marked sent or cancelled on the previous day, discard
                 if (key && prevResolvedKeys.has(key)) {
                     continue;
                 }
 
-                // If it is an ancient order from dates before prevDate, and was NOT pending yesterday, discard it
-                if (key && olderDatesKeys.has(key) && !prevPendingMap.has(key)) {
-                    continue;
-                }
-
-                // If it is in yesterday's pending list, keep it
+                // If it was pending in yesterday's sheet, keep it
                 if (key && prevPendingMap.has(key)) {
                     if (!seenKeys.has(key)) {
                         seenKeys.add(key);
@@ -4741,20 +4730,22 @@
                     continue;
                 }
 
-                // If it was carried from an ancient past date that is not prevDate, discard it
-                let srcDate = order.sourceDate;
-                if (srcDate && srcDate !== targetDateStr && srcDate !== prevDate) {
+                // Check if this order was created directly on target date
+                let isCreatedToday = (order.sourceDate === targetDateStr) || 
+                                     (order.createdAt && String(order.createdAt).startsWith(targetDateStr));
+
+                if (isCreatedToday) {
+                    if (!key || !seenKeys.has(key)) {
+                        if (key) seenKeys.add(key);
+                        finalOrders.push(order);
+                    }
                     continue;
                 }
 
-                // Otherwise, it is an order created directly on this target date
-                if (!key || !seenKeys.has(key)) {
-                    if (key) seenKeys.add(key);
-                    finalOrders.push(order);
-                }
+                // Any other pending order not pending yesterday and not created today is DISCARDED!
             }
 
-            // Add any pending orders from previous date that are not yet in finalOrders
+            // 3. Add any pending orders from previous date that are not yet in finalOrders
             prevPendingMap.forEach((pastOrder, key) => {
                 if (!seenKeys.has(key) && !prevResolvedKeys.has(key)) {
                     let carriedOrder = {
@@ -4774,7 +4765,7 @@
                 }
             });
 
-            // Save if finalOrders differs from targetDateOrders
+            // 4. Save if finalOrders differs from targetDateOrders
             if (JSON.stringify(finalOrders) !== JSON.stringify(targetDateOrders)) {
                 await window.fbSaveOrder(type, targetDateStr, finalOrders);
                 if (cachedOrders && (await getActiveDate()) === targetDateStr) {
@@ -4839,13 +4830,14 @@
                 orderNo,
                 orderReason,
                 amount,
-                status: 'pending'
+                status: 'pending',
+                sourceDate: selectedDate,
+                createdAt: nowIso
             };
 
             if (!actor.isAdmin) {
                 newOrder.createdBy = actor.name;
                 newOrder.createdByEmail = actor.email;
-                newOrder.createdAt = nowIso;
             }
 
             orders.push(newOrder);
@@ -5351,18 +5343,6 @@
             const prevDate = pastDates.length > 0 ? pastDates[pastDates.length - 1] : null;
             let prevOrders = prevDate ? normalizeFirebaseArray(allDatesData[prevDate]) : [];
 
-            // Collect all order keys from dates older than prevDate
-            let olderDatesKeys = new Set();
-            for (let d of pastDates) {
-                if (d !== prevDate) {
-                    let dOrders = normalizeFirebaseArray(allDatesData[d]);
-                    for (let o of dOrders) {
-                        let k = getOrderUniqueKey(o);
-                        if (k) olderDatesKeys.add(k);
-                    }
-                }
-            }
-
             let prevPendingMap = new Map(); // key -> { order, status }
             let prevResolvedKeys = new Set();
 
@@ -5396,10 +5376,6 @@
                     continue;
                 }
 
-                if (key && olderDatesKeys.has(key) && !prevPendingMap.has(key)) {
-                    continue;
-                }
-
                 if (key && prevPendingMap.has(key)) {
                     if (!seenKeys.has(key)) {
                         seenKeys.add(key);
@@ -5408,14 +5384,15 @@
                     continue;
                 }
 
-                let srcDate = order.sourceDate;
-                if (srcDate && srcDate !== targetDateStr && srcDate !== prevDate) {
-                    continue;
-                }
+                let isCreatedToday = (order.sourceDate === targetDateStr) || 
+                                     (order.createdAt && String(order.createdAt).startsWith(targetDateStr));
 
-                if (!key || !seenKeys.has(key)) {
-                    if (key) seenKeys.add(key);
-                    finalOrders.push(order);
+                if (isCreatedToday) {
+                    if (!key || !seenKeys.has(key)) {
+                        if (key) seenKeys.add(key);
+                        finalOrders.push(order);
+                    }
+                    continue;
                 }
             }
 
@@ -5508,13 +5485,14 @@
                 productName,
                 orderReason: orderReason || 'Awaiting Restock',
                 amount,
-                status: 'awaiting'
+                status: 'awaiting',
+                sourceDate: selectedDate,
+                createdAt: nowIso
             };
 
             if (!actor.isAdmin) {
                 newRestockOrder.createdBy = actor.name;
                 newRestockOrder.createdByEmail = actor.email;
-                newRestockOrder.createdAt = nowIso;
             }
 
             orders.push(newRestockOrder);
