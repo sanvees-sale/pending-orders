@@ -40,6 +40,7 @@
             }
             return [];
         }
+        window.normalizeFirebaseArray = normalizeFirebaseArray;
 
         let activeRealtimeUnsubs = [];
 
@@ -139,7 +140,14 @@
             try {
                 const snapshot = await get(child(ref(db), `orders/${type}`));
                 if (snapshot.exists()) {
-                    return snapshot.val();
+                    const raw = snapshot.val();
+                    const result = {};
+                    if (raw && typeof raw === 'object') {
+                        for (const dateKey of Object.keys(raw)) {
+                            result[dateKey] = normalizeFirebaseArray(raw[dateKey]);
+                        }
+                    }
+                    return result;
                 } else {
                     return null;
                 }
@@ -182,7 +190,14 @@
             try {
                 const snapshot = await get(child(ref(db), `restock_orders/${brand}`));
                 if (snapshot.exists()) {
-                    return snapshot.val();
+                    const raw = snapshot.val();
+                    const result = {};
+                    if (raw && typeof raw === 'object') {
+                        for (const dateKey of Object.keys(raw)) {
+                            result[dateKey] = normalizeFirebaseArray(raw[dateKey]);
+                        }
+                    }
+                    return result;
                 } else {
                     return null;
                 }
@@ -911,6 +926,52 @@
         .input-amount {
             flex: 0.8;
             min-width: 140px;
+        }
+
+        .amount-calc-wrapper {
+            position: relative;
+            flex: 0.8;
+            min-width: 140px;
+            display: flex;
+            align-items: center;
+        }
+
+        .amount-calc-wrapper .input-amount {
+            width: 100%;
+            flex: 1;
+            padding-right: 28px;
+        }
+
+        .calc-live-badge {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-grad);
+            color: #ffffff;
+            font-size: 11.5px;
+            font-weight: 800;
+            padding: 4px 9px;
+            border-radius: 8px;
+            box-shadow: 0 3px 12px var(--primary-glow);
+            pointer-events: none;
+            display: none;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            z-index: 5;
+            animation: fadeInCalcBadge 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeInCalcBadge {
+            from {
+                opacity: 0;
+                transform: translateY(-50%) scale(0.85);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(-50%) scale(1);
+            }
         }
 
         .btn {
@@ -2305,8 +2366,14 @@
                     <input type="text" id="tonyReason" class="input-reason"
                         placeholder="Pending Reason (e.g. customer hold, dress colour...)"
                         onkeypress="handleFormEnter(event, 'tony')">
-                    <input type="number" id="tonyAmount" class="input-amount" placeholder="Amount (BDT)"
-                        onkeypress="handleFormEnter(event, 'tony')">
+                    <div class="amount-calc-wrapper">
+                        <input type="text" id="tonyAmount" class="input-amount" placeholder="Amount (BDT / e.g. 1500+850)"
+                            oninput="handleAmountInput(this, 'tonyAmountCalcBadge')"
+                            onblur="formatAmountOnBlur(this, 'tonyAmountCalcBadge')"
+                            onkeypress="handleFormEnter(event, 'tony')"
+                            title="Type amount or math expression (e.g. 1500+2200-500)">
+                        <div class="calc-live-badge" id="tonyAmountCalcBadge"></div>
+                    </div>
                     <button class="btn add-btn" onclick="addOrder('tony')">➕ Add Order</button>
                 </div>
             </div>
@@ -2454,8 +2521,14 @@
                     <input type="text" id="tonyRestockReason" class="input-reason"
                         placeholder="Restock Note (e.g. Expected Monday / Batch 2)"
                         onkeypress="handleRestockFormEnter(event, 'tony')">
-                    <input type="number" id="tonyRestockAmount" class="input-amount" placeholder="Amount (BDT)"
-                        onkeypress="handleRestockFormEnter(event, 'tony')">
+                    <div class="amount-calc-wrapper">
+                        <input type="text" id="tonyRestockAmount" class="input-amount" placeholder="Amount (BDT / e.g. 1500+850)"
+                            oninput="handleAmountInput(this, 'tonyRestockAmountCalcBadge')"
+                            onblur="formatAmountOnBlur(this, 'tonyRestockAmountCalcBadge')"
+                            onkeypress="handleRestockFormEnter(event, 'tony')"
+                            title="Type amount or math expression (e.g. 1500+2200-500)">
+                        <div class="calc-live-badge" id="tonyRestockAmountCalcBadge"></div>
+                    </div>
                     <button class="btn add-btn" onclick="addRestockOrder('tony')">➕ Add Restock Order</button>
                 </div>
             </div>
@@ -2617,8 +2690,14 @@
                         onkeypress="handleFormEnter(event, 'sanvees')">
                     <input type="text" id="sanveesReason" class="input-reason" placeholder="Pending Reason"
                         onkeypress="handleFormEnter(event, 'sanvees')">
-                    <input type="number" id="sanveesAmount" class="input-amount" placeholder="Amount (BDT)"
-                        onkeypress="handleFormEnter(event, 'sanvees')">
+                    <div class="amount-calc-wrapper">
+                        <input type="text" id="sanveesAmount" class="input-amount" placeholder="Amount (BDT / e.g. 1500+850)"
+                            oninput="handleAmountInput(this, 'sanveesAmountCalcBadge')"
+                            onblur="formatAmountOnBlur(this, 'sanveesAmountCalcBadge')"
+                            onkeypress="handleFormEnter(event, 'sanvees')"
+                            title="Type amount or math expression (e.g. 1500+2200-500)">
+                        <div class="calc-live-badge" id="sanveesAmountCalcBadge"></div>
+                    </div>
                     <button class="btn add-btn" onclick="addOrder('sanvees')">➕ Add Order</button>
                 </div>
             </div>
@@ -2778,8 +2857,14 @@
                     <input type="text" id="sanveesRestockReason" class="input-reason"
                         placeholder="Restock Note (e.g. Expected Monday / Batch 2)"
                         onkeypress="handleRestockFormEnter(event, 'sanvees')">
-                    <input type="number" id="sanveesRestockAmount" class="input-amount" placeholder="Amount (BDT)"
-                        onkeypress="handleRestockFormEnter(event, 'sanvees')">
+                    <div class="amount-calc-wrapper">
+                        <input type="text" id="sanveesRestockAmount" class="input-amount" placeholder="Amount (BDT / e.g. 1500+850)"
+                            oninput="handleAmountInput(this, 'sanveesRestockAmountCalcBadge')"
+                            onblur="formatAmountOnBlur(this, 'sanveesRestockAmountCalcBadge')"
+                            onkeypress="handleRestockFormEnter(event, 'sanvees')"
+                            title="Type amount or math expression (e.g. 1500+2200-500)">
+                        <div class="calc-live-badge" id="sanveesRestockAmountCalcBadge"></div>
+                    </div>
                     <button class="btn add-btn" onclick="addRestockOrder('sanvees')">➕ Add Restock Order</button>
                 </div>
             </div>
@@ -2942,8 +3027,14 @@
                         onkeypress="handleFormEnter(event, 'forever')">
                     <input type="text" id="foreverReason" class="input-reason" placeholder="Pending Reason"
                         onkeypress="handleFormEnter(event, 'forever')">
-                    <input type="number" id="foreverAmount" class="input-amount" placeholder="Amount (BDT)"
-                        onkeypress="handleFormEnter(event, 'forever')">
+                    <div class="amount-calc-wrapper">
+                        <input type="text" id="foreverAmount" class="input-amount" placeholder="Amount (BDT / e.g. 1500+850)"
+                            oninput="handleAmountInput(this, 'foreverAmountCalcBadge')"
+                            onblur="formatAmountOnBlur(this, 'foreverAmountCalcBadge')"
+                            onkeypress="handleFormEnter(event, 'forever')"
+                            title="Type amount or math expression (e.g. 1500+2200-500)">
+                        <div class="calc-live-badge" id="foreverAmountCalcBadge"></div>
+                    </div>
                     <button class="btn add-btn" onclick="addOrder('forever')">➕ Add Order</button>
                 </div>
             </div>
@@ -3430,6 +3521,15 @@
 
 
     <script>
+        function normalizeFirebaseArray(val) {
+            if (!val) return [];
+            if (Array.isArray(val)) return val.filter(Boolean);
+            if (typeof val === 'object') {
+                return Object.values(val).filter(Boolean);
+            }
+            return [];
+        }
+
         let deleteTarget = null;
         let activeTab = 'tony'; // 'tony', 'tony-restock', 'sanvees', 'sanvees-restock', 'forever'
 
@@ -3457,6 +3557,76 @@
         let globalFullDatabaseCache = null;
         let globalBrandFilter = 'all';
         let globalStatusFilter = 'all';
+
+        // =========================================================================
+        // SMART MATH CALCULATOR / AUTO-SUM FOR AMOUNT INPUTS
+        // =========================================================================
+        function evaluateMathExpression(val) {
+            if (val === null || val === undefined) return 0;
+            if (typeof val === 'number') return isNaN(val) ? 0 : val;
+
+            let str = normalizeBanglaDigits(String(val)).trim();
+            if (!str) return 0;
+
+            // Strip currency symbols, commas, or words
+            str = str.replace(/(?:tk|bdt|৳|,|\$)/gi, '').trim();
+
+            // If it's a plain number already
+            if (/^-?\d+(\.\d+)?$/.test(str)) {
+                let n = parseFloat(str);
+                return isNaN(n) ? 0 : n;
+            }
+
+            // Sanitize: allow only numbers, +, -, *, /, ., (, ), and whitespace
+            let sanitized = str.replace(/[^0-9\+\-\*\/\.\(\)\s]/g, '').trim();
+            if (!sanitized) return 0;
+
+            // Strip trailing operators while typing (e.g. "1500+")
+            let cleanForEval = sanitized.replace(/[\+\-\*\/\.]*$/, '').trim();
+            if (!cleanForEval) return 0;
+
+            try {
+                if (/^[\d\s\+\-\*\/\.\(\)]+$/.test(cleanForEval)) {
+                    let result = Function(`'use strict'; return (${cleanForEval});`)();
+                    if (typeof result === 'number' && isFinite(result)) {
+                        return Math.round(result * 100) / 100;
+                    }
+                }
+            } catch (e) { }
+
+            let fallback = parseFloat(str);
+            return isNaN(fallback) ? 0 : fallback;
+        }
+
+        function handleAmountInput(inputEl, badgeId) {
+            if (!inputEl) return;
+            let val = inputEl.value;
+            let badge = badgeId ? document.getElementById(badgeId) : null;
+
+            if (/[+\-*/]/.test(val)) {
+                let result = evaluateMathExpression(val);
+                if (badge) {
+                    badge.innerText = `= Tk ${result.toLocaleString()}`;
+                    badge.style.display = 'flex';
+                }
+            } else {
+                if (badge) {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+
+        function formatAmountOnBlur(inputEl, badgeId) {
+            if (!inputEl) return;
+            let val = inputEl.value.trim();
+            let badge = badgeId ? document.getElementById(badgeId) : null;
+            if (badge) badge.style.display = 'none';
+
+            if (/[+\-*/]/.test(val)) {
+                let result = evaluateMathExpression(val);
+                inputEl.value = result > 0 ? result : (result === 0 && val ? '0' : '');
+            }
+        }
 
         // =========================================================================
         // SMART SEARCH & BENGALI NUMERAL NORMALIZATION HELPERS
@@ -3582,7 +3752,7 @@
                     if (!allDatesData) return;
                     let futureDates = Object.keys(allDatesData).filter(d => d > afterDateStr);
                     for (let fDate of futureDates) {
-                        let fOrders = allDatesData[fDate] || [];
+                        let fOrders = normalizeFirebaseArray(allDatesData[fDate]);
                         let filtered = fOrders.filter(o => getOrderUniqueKey(o) !== orderKey);
                         if (filtered.length !== fOrders.length) {
                             await window.fbSaveOrder(brand, fDate, filtered);
@@ -3593,7 +3763,7 @@
                     if (!allDatesData) return;
                     let futureDates = Object.keys(allDatesData).filter(d => d > afterDateStr);
                     for (let fDate of futureDates) {
-                        let fOrders = allDatesData[fDate] || [];
+                        let fOrders = normalizeFirebaseArray(allDatesData[fDate]);
                         let filtered = fOrders.filter(o => getOrderUniqueKey(o) !== orderKey);
                         if (filtered.length !== fOrders.length) {
                             await window.fbSaveRestockOrders(brand, fDate, filtered);
@@ -4416,7 +4586,13 @@
                 document.getElementById(target.contentId).classList.add('active');
             }
 
-            if (tabName === 'tony-restock') {
+            if (tabName === 'tony') {
+                renderFilteredTable('tony');
+            } else if (tabName === 'sanvees') {
+                renderFilteredTable('sanvees');
+            } else if (tabName === 'forever') {
+                renderFilteredTable('forever');
+            } else if (tabName === 'tony-restock') {
                 renderRestockTable('tony');
             } else if (tabName === 'sanvees-restock') {
                 renderRestockTable('sanvees');
@@ -4454,14 +4630,34 @@
             let allDatesData = await window.fbLoadAllDates(type);
             if (!allDatesData) return;
 
-            let targetDateOrders = allDatesData[targetDateStr] ? [...allDatesData[targetDateStr]] : [];
+            let targetDateOrders = normalizeFirebaseArray(allDatesData[targetDateStr] ? [...allDatesData[targetDateStr]] : []);
             let pastDates = Object.keys(allDatesData).filter(d => d < targetDateStr).sort();
+            if (pastDates.length === 0 && targetDateOrders.length === 0) return;
 
-            // 1. Collect all resolved keys (Sent / Cancelled) anywhere in history or in target date
-            let resolvedKeys = new Set();
+            // 1. Scan past dates in chronological order
+            let activePastPendings = new Map(); // orderKey -> { order, sourceDate }
+            let resolvedPastKeys = new Set(); // orderKey of orders marked 'sent' or 'cancelled' in past
+
+            for (let pDate of pastDates) {
+                let dayOrders = normalizeFirebaseArray(allDatesData[pDate]);
+                for (let order of dayOrders) {
+                    let key = getOrderUniqueKey(order);
+                    if (!key) continue;
+
+                    let st = order.status || 'pending';
+                    if (st === 'sent' || st === 'cancelled') {
+                        resolvedPastKeys.add(key);
+                        activePastPendings.delete(key);
+                    } else if (st === 'pending') {
+                        resolvedPastKeys.delete(key);
+                        activePastPendings.set(key, { order, sourceDate: order.sourceDate || pDate });
+                    }
+                }
+            }
+
+            // 2. Scan target date orders
             let targetKeysMap = new Map();
-
-            // Check target date orders first
+            let targetResolvedKeys = new Set();
             let deduplicatedTarget = [];
             let seenTargetKeys = new Set();
 
@@ -4471,70 +4667,51 @@
                     deduplicatedTarget.push(order);
                     continue;
                 }
+
                 let st = order.status || 'pending';
                 if (st === 'sent' || st === 'cancelled') {
-                    resolvedKeys.add(key);
+                    targetResolvedKeys.add(key);
+                    resolvedPastKeys.add(key);
+                    activePastPendings.delete(key);
                 }
+
                 if (!seenTargetKeys.has(key)) {
                     seenTargetKeys.add(key);
                     deduplicatedTarget.push(order);
                     targetKeysMap.set(key, order);
-                } else {
-                    let existing = targetKeysMap.get(key);
-                    if (existing && (st === 'sent' || st === 'cancelled')) {
-                        existing.status = st;
-                        resolvedKeys.add(key);
-                    }
                 }
             }
 
-            // 2. Scan past dates: find orders that were EVER resolved vs active pending
-            let pastPendingOrders = new Map();
-
-            for (let pDate of pastDates) {
-                let dayOrders = allDatesData[pDate] || [];
-                for (let order of dayOrders) {
-                    let key = getOrderUniqueKey(order);
-                    if (!key) continue;
-
-                    let st = order.status || 'pending';
-                    if (st === 'sent' || st === 'cancelled') {
-                        resolvedKeys.add(key);
-                        pastPendingOrders.delete(key);
-                    } else if (st === 'pending' && !resolvedKeys.has(key)) {
-                        pastPendingOrders.set(key, order);
-                    }
-                }
-            }
-
-            // 3. Filter target date orders: remove orders that were resolved in past UNLESS they are explicitly marked on target date
+            // 3. Filter target date orders:
+            // Remove stale pending copies if marked sent/cancelled on past dates
             let finalOrders = deduplicatedTarget.filter(order => {
                 let key = getOrderUniqueKey(order);
                 if (!key) return true;
                 let st = order.status || 'pending';
                 if (st === 'sent' || st === 'cancelled') return true;
-                if (resolvedKeys.has(key)) return false;
+                if (resolvedPastKeys.has(key)) return false;
                 return true;
             });
 
             let finalKeys = new Set(finalOrders.map(o => getOrderUniqueKey(o)).filter(k => !!k));
             let addedCount = 0;
 
-            // 4. Carry forward strictly active pending orders that don't exist yet
-            pastPendingOrders.forEach((pastOrder, key) => {
-                if (!resolvedKeys.has(key) && !finalKeys.has(key)) {
+            // 4. Carry forward active pending orders from past to target date
+            activePastPendings.forEach(({ order: pastOrder, sourceDate }, key) => {
+                if (!resolvedPastKeys.has(key) && !targetResolvedKeys.has(key) && !finalKeys.has(key)) {
                     finalOrders.push({
                         id: pastOrder.id || ('ord_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7)),
                         orderNo: pastOrder.orderNo || '',
                         orderReason: pastOrder.orderReason || '',
                         amount: pastOrder.amount !== undefined ? pastOrder.amount : 0,
                         status: 'pending',
+                        sourceDate: sourceDate,
                         createdBy: pastOrder.createdBy || undefined,
                         createdByEmail: pastOrder.createdByEmail || undefined,
                         createdAt: pastOrder.createdAt || undefined,
-                        statusUpdatedBy: pastOrder.statusUpdatedBy || undefined,
-                        statusUpdatedByEmail: pastOrder.statusUpdatedByEmail || undefined,
-                        statusUpdatedAt: pastOrder.statusUpdatedAt || undefined
+                        statusUpdatedBy: undefined,
+                        statusUpdatedByEmail: undefined,
+                        statusUpdatedAt: undefined
                     });
                     finalKeys.add(key);
                     addedCount++;
@@ -4552,6 +4729,10 @@
 
         function handleFormEnter(e, type) {
             if (e.key === 'Enter') {
+                let amountInput = document.getElementById(type + 'Amount');
+                if (amountInput) {
+                    formatAmountOnBlur(amountInput, type + 'AmountCalcBadge');
+                }
                 addOrder(type);
             }
         }
@@ -4563,7 +4744,7 @@
 
             let orderNo = orderNoInput.value.trim();
             let orderReason = reasonInput.value.trim();
-            let amount = parseFloat(amountInput.value) || 0;
+            let amount = evaluateMathExpression(amountInput.value);
             let selectedDate = await getActiveDate();
 
             if (!selectedDate) {
@@ -4615,6 +4796,8 @@
             orderNoInput.value = "";
             reasonInput.value = "";
             amountInput.value = "";
+            let badge = document.getElementById(type + 'AmountCalcBadge');
+            if (badge) badge.style.display = 'none';
 
             showToast("Order added successfully!", "success");
             await loadOrders(type);
@@ -4798,7 +4981,7 @@
                 
                 <!-- Amount: Screen Input + Print Full Text -->
                 <td>
-                    <input type="number" class="table-amount-input screen-only-input" value="${orderAmount}" onchange="updateOrderFieldInline('${type}', ${originalIndex}, 'amount', this.value)">
+                    <input type="text" class="table-amount-input screen-only-input" value="${orderAmount}" onchange="updateOrderFieldInline('${type}', ${originalIndex}, 'amount', this.value)" onkeydown="if(event.key==='Enter') this.blur()" title="Click to edit Amount (e.g. 1500+500)">
                     <div class="print-cell-text center amount">Tk ${orderAmount.toLocaleString()}</div>
                 </td>
                 
@@ -4910,7 +5093,7 @@
             if (!orders || !orders[originalIndex]) return;
 
             let oldValue = orders[originalIndex][field];
-            let newValue = field === 'amount' ? (parseFloat(value) || 0) : value.trim();
+            let newValue = field === 'amount' ? evaluateMathExpression(value) : value.trim();
 
             if (oldValue === newValue) return;
 
@@ -5086,6 +5269,11 @@
         // =========================================================================
         function handleRestockFormEnter(e, brand) {
             if (e.key === 'Enter') {
+                let cap = brand === 'tony' ? 'tony' : 'sanvees';
+                let amountInput = document.getElementById(cap + 'RestockAmount');
+                if (amountInput) {
+                    formatAmountOnBlur(amountInput, cap + 'RestockAmountCalcBadge');
+                }
                 addRestockOrder(brand);
             }
         }
@@ -5094,13 +5282,34 @@
             let allDatesData = await window.fbLoadAllRestockDates(brand);
             if (!allDatesData) return;
 
-            let targetDateOrders = allDatesData[targetDateStr] ? [...allDatesData[targetDateStr]] : [];
+            let targetDateOrders = normalizeFirebaseArray(allDatesData[targetDateStr] ? [...allDatesData[targetDateStr]] : []);
             let pastDates = Object.keys(allDatesData).filter(d => d < targetDateStr).sort();
+            if (pastDates.length === 0 && targetDateOrders.length === 0) return;
 
-            // 1. Collect all resolved keys (Sent / Cancelled) anywhere in history or in target date
-            let resolvedKeys = new Set();
+            // 1. Scan past dates in chronological order
+            let activePastRestock = new Map(); // key -> { order, status, sourceDate }
+            let resolvedPastKeys = new Set(); // orders marked 'sent' or 'cancelled' in past
+
+            for (let pDate of pastDates) {
+                let dayOrders = normalizeFirebaseArray(allDatesData[pDate]);
+                for (let order of dayOrders) {
+                    let key = getOrderUniqueKey(order);
+                    if (!key) continue;
+
+                    let st = order.status || 'awaiting';
+                    if (st === 'sent' || st === 'cancelled') {
+                        resolvedPastKeys.add(key);
+                        activePastRestock.delete(key);
+                    } else if (st === 'awaiting' || st === 'ready') {
+                        resolvedPastKeys.delete(key);
+                        activePastRestock.set(key, { order, status: st, sourceDate: order.sourceDate || pDate });
+                    }
+                }
+            }
+
+            // 2. Scan target date orders
             let targetKeysMap = new Map();
-
+            let targetResolvedKeys = new Set();
             let deduplicatedTarget = [];
             let seenTargetKeys = new Set();
 
@@ -5110,71 +5319,52 @@
                     deduplicatedTarget.push(order);
                     continue;
                 }
+
                 let st = order.status || 'awaiting';
                 if (st === 'sent' || st === 'cancelled') {
-                    resolvedKeys.add(key);
+                    targetResolvedKeys.add(key);
+                    resolvedPastKeys.add(key);
+                    activePastRestock.delete(key);
                 }
+
                 if (!seenTargetKeys.has(key)) {
                     seenTargetKeys.add(key);
                     deduplicatedTarget.push(order);
                     targetKeysMap.set(key, order);
-                } else {
-                    let existing = targetKeysMap.get(key);
-                    if (existing && (st === 'sent' || st === 'cancelled')) {
-                        existing.status = st;
-                        resolvedKeys.add(key);
-                    }
                 }
             }
 
-            // 2. Scan past dates
-            let pastRestockOrders = new Map();
-
-            for (let pDate of pastDates) {
-                let dayOrders = allDatesData[pDate] || [];
-                for (let order of dayOrders) {
-                    let key = getOrderUniqueKey(order);
-                    if (!key) continue;
-
-                    let st = order.status || 'awaiting';
-                    if (st === 'sent' || st === 'cancelled') {
-                        resolvedKeys.add(key);
-                        pastRestockOrders.delete(key);
-                    } else if ((st === 'awaiting' || st === 'ready') && !resolvedKeys.has(key)) {
-                        pastRestockOrders.set(key, { order, status: st });
-                    }
-                }
-            }
-
-            // 3. Filter target date orders
+            // 3. Filter target date orders:
+            // Remove stale awaiting/ready copies if marked sent/cancelled on past dates
             let finalOrders = deduplicatedTarget.filter(order => {
                 let key = getOrderUniqueKey(order);
                 if (!key) return true;
                 let st = order.status || 'awaiting';
                 if (st === 'sent' || st === 'cancelled') return true;
-                if (resolvedKeys.has(key)) return false;
+                if (resolvedPastKeys.has(key)) return false;
                 return true;
             });
 
             let finalKeys = new Set(finalOrders.map(o => getOrderUniqueKey(o)).filter(k => !!k));
             let addedCount = 0;
 
-            // 4. Carry forward active awaiting/ready orders
-            pastRestockOrders.forEach((info, key) => {
-                if (!resolvedKeys.has(key) && !finalKeys.has(key)) {
+            // 4. Carry forward active awaiting/ready orders from past to target date
+            activePastRestock.forEach(({ order: pastOrder, status: pastStatus, sourceDate }, key) => {
+                if (!resolvedPastKeys.has(key) && !targetResolvedKeys.has(key) && !finalKeys.has(key)) {
                     finalOrders.push({
-                        id: info.order.id || ('rst_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7)),
-                        orderNo: info.order.orderNo || '',
-                        productName: info.order.productName || '',
-                        orderReason: info.order.orderReason || 'Awaiting Restock',
-                        amount: info.order.amount !== undefined ? info.order.amount : 0,
-                        status: info.status || 'awaiting',
-                        createdBy: info.order.createdBy || undefined,
-                        createdByEmail: info.order.createdByEmail || undefined,
-                        createdAt: info.order.createdAt || undefined,
-                        statusUpdatedBy: info.order.statusUpdatedBy || undefined,
-                        statusUpdatedByEmail: info.order.statusUpdatedByEmail || undefined,
-                        statusUpdatedAt: info.order.statusUpdatedAt || undefined
+                        id: pastOrder.id || ('rst_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7)),
+                        orderNo: pastOrder.orderNo || '',
+                        productName: pastOrder.productName || '',
+                        orderReason: pastOrder.orderReason || 'Awaiting Restock',
+                        amount: pastOrder.amount !== undefined ? pastOrder.amount : 0,
+                        status: pastStatus || 'awaiting',
+                        sourceDate: sourceDate,
+                        createdBy: pastOrder.createdBy || undefined,
+                        createdByEmail: pastOrder.createdByEmail || undefined,
+                        createdAt: pastOrder.createdAt || undefined,
+                        statusUpdatedBy: undefined,
+                        statusUpdatedByEmail: undefined,
+                        statusUpdatedAt: undefined
                     });
                     finalKeys.add(key);
                     addedCount++;
@@ -5211,7 +5401,7 @@
             let orderNo = orderNoInput.value.trim();
             let productName = productInput.value.trim();
             let orderReason = reasonInput.value.trim();
-            let amount = parseFloat(amountInput.value) || 0;
+            let amount = evaluateMathExpression(amountInput.value);
             let selectedDate = await getActiveDate();
 
             if (!selectedDate) {
@@ -5265,6 +5455,8 @@
             productInput.value = "";
             reasonInput.value = "";
             amountInput.value = "";
+            let badge = document.getElementById(cap + 'RestockAmountCalcBadge');
+            if (badge) badge.style.display = 'none';
 
             showToast("Restocked order recorded!", "success");
             await loadRestockOrders(brand);
@@ -5447,7 +5639,7 @@
                 
                 <!-- Amount -->
                 <td>
-                    <input type="number" class="table-amount-input screen-only-input" value="${orderAmount}" onchange="updateRestockFieldInline('${brand}', ${originalIndex}, 'amount', this.value)">
+                    <input type="text" class="table-amount-input screen-only-input" value="${orderAmount}" onchange="updateRestockFieldInline('${brand}', ${originalIndex}, 'amount', this.value)" onkeydown="if(event.key==='Enter') this.blur()" title="Edit Amount (e.g. 1500+500)">
                     <div class="print-cell-text center amount">Tk ${orderAmount.toLocaleString()}</div>
                 </td>
                 
@@ -5494,7 +5686,7 @@
             if (!orders || !orders[originalIndex]) return;
 
             let oldValue = orders[originalIndex][field];
-            let newValue = field === 'amount' ? (parseFloat(value) || 0) : value.trim();
+            let newValue = field === 'amount' ? evaluateMathExpression(value) : value.trim();
 
             if (oldValue === newValue) return;
 
