@@ -42,6 +42,16 @@
         }
         window.normalizeFirebaseArray = normalizeFirebaseArray;
 
+        function sanitizeFirebaseData(val) {
+            if (val === undefined || val === null) return null;
+            try {
+                return JSON.parse(JSON.stringify(val));
+            } catch (e) {
+                return val;
+            }
+        }
+        window.sanitizeFirebaseData = sanitizeFirebaseData;
+
         let activeRealtimeUnsubs = [];
 
         // Real-time Live Listeners (WebSockets - Instant multi-device sync)
@@ -109,8 +119,9 @@
         // Standard Orders Handlers
         window.fbSaveOrder = async function (type, dateStr, orders) {
             try {
-                await set(ref(db, `orders/${type}/${dateStr}`), orders);
-                window.syncLocalBackup('orders', type, dateStr, orders);
+                const cleanData = sanitizeFirebaseData(orders) || [];
+                await set(ref(db, `orders/${type}/${dateStr}`), cleanData);
+                window.syncLocalBackup('orders', type, dateStr, cleanData);
                 return true;
             } catch (error) {
                 console.error("Error saving data to Firebase: ", error);
@@ -160,8 +171,9 @@
         // Restocked Product Orders Handlers
         window.fbSaveRestockOrders = async function (brand, dateStr, orders) {
             try {
-                await set(ref(db, `restock_orders/${brand}/${dateStr}`), orders);
-                window.syncLocalBackup('restock_orders', brand, dateStr, orders);
+                const cleanData = sanitizeFirebaseData(orders) || [];
+                await set(ref(db, `restock_orders/${brand}/${dateStr}`), cleanData);
+                window.syncLocalBackup('restock_orders', brand, dateStr, cleanData);
                 return true;
             } catch (error) {
                 console.error("Error saving restock data to Firebase: ", error);
@@ -212,7 +224,8 @@
             try {
                 const trashRef = push(ref(db, 'trash_orders'));
                 trashRecord.id = trashRef.key;
-                await set(trashRef, trashRecord);
+                const cleanData = sanitizeFirebaseData(trashRecord);
+                await set(trashRef, cleanData);
                 return trashRecord.id;
             } catch (error) {
                 console.error("Error saving to trash: ", error);
@@ -292,7 +305,8 @@
                     const newRef = push(ref(db, 'staff_users'));
                     user.id = newRef.key;
                 }
-                await set(ref(db, `staff_users/${user.id}`), user);
+                const cleanData = sanitizeFirebaseData(user);
+                await set(ref(db, `staff_users/${user.id}`), cleanData);
                 return user;
             } catch (error) {
                 console.error("Error saving staff user: ", error);
@@ -3558,6 +3572,22 @@
         let globalBrandFilter = 'all';
         let globalStatusFilter = 'all';
 
+        function parseDateToTimestamp(dateStr) {
+            if (!dateStr) return 0;
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                return new Date(dateStr + 'T00:00:00').getTime();
+            }
+            let ddmmyyyy = String(dateStr).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+            if (ddmmyyyy) {
+                let day = parseInt(ddmmyyyy[1], 10);
+                let month = parseInt(ddmmyyyy[2], 10) - 1;
+                let year = parseInt(ddmmyyyy[3], 10);
+                return new Date(year, month, day).getTime();
+            }
+            let t = new Date(dateStr).getTime();
+            return isNaN(t) ? 0 : t;
+        }
+
         // =========================================================================
         // SMART MATH CALCULATOR / AUTO-SUM FOR AMOUNT INPUTS
         // =========================================================================
@@ -3747,10 +3777,14 @@
         async function cleanFutureDatesForOrder(category, brand, afterDateStr, orderKey) {
             if (!orderKey) return;
             try {
+                let afterTs = parseDateToTimestamp(afterDateStr);
                 if (category === 'orders') {
                     let allDatesData = await window.fbLoadAllDates(brand);
                     if (!allDatesData) return;
-                    let futureDates = Object.keys(allDatesData).filter(d => d > afterDateStr);
+                    let futureDates = Object.keys(allDatesData).filter(d => {
+                        let ts = parseDateToTimestamp(d);
+                        return ts > 0 && afterTs > 0 && ts > afterTs;
+                    });
                     for (let fDate of futureDates) {
                         let fOrders = normalizeFirebaseArray(allDatesData[fDate]);
                         let filtered = fOrders.filter(o => getOrderUniqueKey(o) !== orderKey);
@@ -3761,7 +3795,10 @@
                 } else if (category === 'restock_orders') {
                     let allDatesData = await window.fbLoadAllRestockDates(brand);
                     if (!allDatesData) return;
-                    let futureDates = Object.keys(allDatesData).filter(d => d > afterDateStr);
+                    let futureDates = Object.keys(allDatesData).filter(d => {
+                        let ts = parseDateToTimestamp(d);
+                        return ts > 0 && afterTs > 0 && ts > afterTs;
+                    });
                     for (let fDate of futureDates) {
                         let fOrders = normalizeFirebaseArray(allDatesData[fDate]);
                         let filtered = fOrders.filter(o => getOrderUniqueKey(o) !== orderKey);
@@ -4631,7 +4668,12 @@
             if (!allDatesData) return;
 
             let targetDateOrders = normalizeFirebaseArray(allDatesData[targetDateStr] ? [...allDatesData[targetDateStr]] : []);
-            let pastDates = Object.keys(allDatesData).filter(d => d < targetDateStr).sort();
+            let targetTs = parseDateToTimestamp(targetDateStr);
+            let pastDates = Object.keys(allDatesData).filter(d => {
+                let ts = parseDateToTimestamp(d);
+                return ts > 0 && targetTs > 0 && ts < targetTs;
+            }).sort((a, b) => parseDateToTimestamp(a) - parseDateToTimestamp(b));
+
             if (pastDates.length === 0 && targetDateOrders.length === 0) return;
 
             // 1. Scan past dates in chronological order
@@ -4699,20 +4741,19 @@
             // 4. Carry forward active pending orders from past to target date
             activePastPendings.forEach(({ order: pastOrder, sourceDate }, key) => {
                 if (!resolvedPastKeys.has(key) && !targetResolvedKeys.has(key) && !finalKeys.has(key)) {
-                    finalOrders.push({
+                    let carriedOrder = {
                         id: pastOrder.id || ('ord_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7)),
                         orderNo: pastOrder.orderNo || '',
                         orderReason: pastOrder.orderReason || '',
                         amount: pastOrder.amount !== undefined ? pastOrder.amount : 0,
                         status: 'pending',
-                        sourceDate: sourceDate,
-                        createdBy: pastOrder.createdBy || undefined,
-                        createdByEmail: pastOrder.createdByEmail || undefined,
-                        createdAt: pastOrder.createdAt || undefined,
-                        statusUpdatedBy: undefined,
-                        statusUpdatedByEmail: undefined,
-                        statusUpdatedAt: undefined
-                    });
+                        sourceDate: sourceDate
+                    };
+                    if (pastOrder.createdBy) carriedOrder.createdBy = pastOrder.createdBy;
+                    if (pastOrder.createdByEmail) carriedOrder.createdByEmail = pastOrder.createdByEmail;
+                    if (pastOrder.createdAt) carriedOrder.createdAt = pastOrder.createdAt;
+
+                    finalOrders.push(carriedOrder);
                     finalKeys.add(key);
                     addedCount++;
                 }
@@ -5283,7 +5324,12 @@
             if (!allDatesData) return;
 
             let targetDateOrders = normalizeFirebaseArray(allDatesData[targetDateStr] ? [...allDatesData[targetDateStr]] : []);
-            let pastDates = Object.keys(allDatesData).filter(d => d < targetDateStr).sort();
+            let targetTs = parseDateToTimestamp(targetDateStr);
+            let pastDates = Object.keys(allDatesData).filter(d => {
+                let ts = parseDateToTimestamp(d);
+                return ts > 0 && targetTs > 0 && ts < targetTs;
+            }).sort((a, b) => parseDateToTimestamp(a) - parseDateToTimestamp(b));
+
             if (pastDates.length === 0 && targetDateOrders.length === 0) return;
 
             // 1. Scan past dates in chronological order
@@ -5351,21 +5397,20 @@
             // 4. Carry forward active awaiting/ready orders from past to target date
             activePastRestock.forEach(({ order: pastOrder, status: pastStatus, sourceDate }, key) => {
                 if (!resolvedPastKeys.has(key) && !targetResolvedKeys.has(key) && !finalKeys.has(key)) {
-                    finalOrders.push({
+                    let carriedOrder = {
                         id: pastOrder.id || ('rst_' + Date.now() + '_' + Math.random().toString(36).substr(2, 7)),
                         orderNo: pastOrder.orderNo || '',
                         productName: pastOrder.productName || '',
                         orderReason: pastOrder.orderReason || 'Awaiting Restock',
                         amount: pastOrder.amount !== undefined ? pastOrder.amount : 0,
                         status: pastStatus || 'awaiting',
-                        sourceDate: sourceDate,
-                        createdBy: pastOrder.createdBy || undefined,
-                        createdByEmail: pastOrder.createdByEmail || undefined,
-                        createdAt: pastOrder.createdAt || undefined,
-                        statusUpdatedBy: undefined,
-                        statusUpdatedByEmail: undefined,
-                        statusUpdatedAt: undefined
-                    });
+                        sourceDate: sourceDate
+                    };
+                    if (pastOrder.createdBy) carriedOrder.createdBy = pastOrder.createdBy;
+                    if (pastOrder.createdByEmail) carriedOrder.createdByEmail = pastOrder.createdByEmail;
+                    if (pastOrder.createdAt) carriedOrder.createdAt = pastOrder.createdAt;
+
+                    finalOrders.push(carriedOrder);
                     finalKeys.add(key);
                     addedCount++;
                 }
