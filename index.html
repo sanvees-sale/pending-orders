@@ -1614,6 +1614,40 @@
             outline: none;
         }
 
+        .table-order-protected {
+            cursor: default !important;
+            user-select: all !important;
+            border-color: transparent !important;
+            letter-spacing: 0.3px;
+        }
+
+        .table-order-protected:hover {
+            background: rgba(255, 255, 255, 0.03) !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        .table-order-protected:focus {
+            background: transparent !important;
+            border-color: transparent !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        .table-reason-input {
+            cursor: text;
+        }
+
+        .table-reason-input:hover {
+            background: var(--card-sub-bg);
+            border-color: var(--border);
+        }
+
+        .table-reason-input:focus {
+            background: var(--input-bg);
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 2.5px var(--primary-glow);
+        }
+
         .table-amount-input {
             width: 110px;
             padding: 8px 10px;
@@ -4729,11 +4763,27 @@
         }
 
         function refreshCurrentTabTables() {
-            let curBrand = (activeTab === 'tony' || activeTab === 'tony-restock') ? 'tony' : 'sanvees';
-            if (activeTab.includes('restock')) {
-                renderRestockTable(curBrand);
-            } else {
-                renderFilteredTable(curBrand);
+            if (activeTab === 'tony') {
+                renderFilteredTable('tony');
+            } else if (activeTab === 'sanvees') {
+                renderFilteredTable('sanvees');
+            } else if (activeTab === 'forever') {
+                renderFilteredTable('forever');
+            } else if (activeTab === 'tony-restock') {
+                renderRestockTable('tony');
+            } else if (activeTab === 'sanvees-restock') {
+                renderRestockTable('sanvees');
+            }
+        }
+
+        let lastOrderNoWarnTime = 0;
+        function handleProtectedOrderNoClick() {
+            if (!isAdminLoggedIn()) {
+                let now = Date.now();
+                if (now - lastOrderNoWarnTime > 2500) {
+                    lastOrderNoWarnTime = now;
+                    showToast("🔒 অর্ডার নাম্বার সুরক্ষিত! এটি মোছা বা রিমুভ করা যাবে না। আপনি শুধু নোট পরিবর্তন করতে পারবেন।", "warning");
+                }
             }
         }
 
@@ -5757,6 +5807,7 @@
             let orders = cachedOrders[type] || [];
             let tbody = document.getElementById(type + 'TableBody');
             tbody.innerHTML = "";
+            let isAdmin = isAdminLoggedIn();
 
             let filterStatus = currentFilters[type].status;
             let searchQuery = currentFilters[type].search;
@@ -5806,13 +5857,17 @@
                 let statusBadgeText = currentStatus === 'pending' ? '⏳ Pending' : (currentStatus === 'sent' ? '🚚 Parcel Sent' : '❌ Cancelled');
                 let rowId = `orderRow_${type}_${originalIndex}`;
 
+                let orderInputHtml = isAdmin
+                    ? `<input type="text" class="inline-edit-input table-order-input screen-only-input" value="${escapeHtml(order.orderNo || '')}" onchange="updateOrderFieldInline('${type}', ${originalIndex}, 'orderNo', this.value)" title="Click to edit Order Number (Admin)">`
+                    : `<input type="text" class="inline-edit-input table-order-input table-order-protected screen-only-input" value="${escapeHtml(order.orderNo || '')}" readonly onclick="handleProtectedOrderNoClick()" onfocus="handleProtectedOrderNoClick()" title="🔒 Order Number is protected (Moderators cannot remove or edit)">`;
+
                 let row = `<tr id="${rowId}">
                 <td><b>${displayIndex + 1}</b></td>
                 
                 <!-- Order No: Screen Input + Copy Button + Print Full Text -->
                 <td>
                     <div class="cell-content-box order-cell-box">
-                        <input type="text" class="inline-edit-input table-order-input screen-only-input" value="${escapeHtml(order.orderNo || '')}" onchange="updateOrderFieldInline('${type}', ${originalIndex}, 'orderNo', this.value)" title="Click to edit Order Number">
+                        ${orderInputHtml}
                         <button type="button" class="copy-btn screen-only-input" onclick="copyOrderInput(this)" title="Copy number">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -5826,7 +5881,7 @@
                 <!-- Pending Reason: Screen Input + Print Multi-line Full Text -->
                 <td>
                     <div class="cell-content-box">
-                        <input type="text" class="inline-edit-input table-reason-input screen-only-input" value="${escapeHtml(order.orderReason || '')}" onchange="updateOrderFieldInline('${type}', ${originalIndex}, 'orderReason', this.value)" title="Click to edit Reason">
+                        <input type="text" class="inline-edit-input table-reason-input screen-only-input" value="${escapeHtml(order.orderReason || '')}" onchange="updateOrderFieldInline('${type}', ${originalIndex}, 'orderReason', this.value)" title="Click to edit Note / Reason" placeholder="Add note...">
                         <div class="print-cell-text">${escapeHtml(order.orderReason || '')}</div>
                     </div>
                 </td>
@@ -5952,6 +6007,18 @@
             if (oldValue === newValue) return;
 
             if (field === 'orderNo') {
+                if (!isAdminLoggedIn()) {
+                    showToast("🔒 শুধুমাত্র Admin অর্ডার নাম্বার পরিবর্তন বা রিমুভ করতে পারবেন!", "warning");
+                    renderFilteredTable(type);
+                    return;
+                }
+
+                if (!newValue || newValue.trim() === '') {
+                    showToast("⚠️ অর্ডার নাম্বার মুছে ফেলা বা সম্পূর্ণ খালি করা যাবে না!", "error");
+                    renderFilteredTable(type);
+                    return;
+                }
+
                 let currentId = orders[originalIndex].id;
                 let dup = findDuplicateInList(orders, newValue, currentId);
                 if (dup) {
@@ -6405,6 +6472,7 @@
             let orders = cachedRestockOrders[brand] || [];
             let tbody = document.getElementById(brand + 'RestockTableBody');
             tbody.innerHTML = "";
+            let isAdmin = isAdminLoggedIn();
 
             let filterStatus = currentRestockFilters[brand].status;
             let searchQuery = currentRestockFilters[brand].search;
@@ -6455,13 +6523,17 @@
                 let statusBadgeText = currentStatus === 'awaiting' ? '⏳ Awaiting' : (currentStatus === 'ready' ? '📦 In Stock' : (currentStatus === 'sent' ? '🚚 Sent' : '❌ Cancelled'));
                 let rowId = `restockRow_${brand}_${originalIndex}`;
 
+                let restockOrderInputHtml = isAdmin
+                    ? `<input type="text" class="inline-edit-input table-order-input screen-only-input" value="${escapeHtml(order.orderNo || '')}" onchange="updateRestockFieldInline('${brand}', ${originalIndex}, 'orderNo', this.value)" title="Edit Customer / Order No (Admin)">`
+                    : `<input type="text" class="inline-edit-input table-order-input table-order-protected screen-only-input" value="${escapeHtml(order.orderNo || '')}" readonly onclick="handleProtectedOrderNoClick()" onfocus="handleProtectedOrderNoClick()" title="🔒 Customer / Order No is protected (Moderators cannot remove or edit)">`;
+
                 let row = `<tr id="${rowId}">
                 <td><b>${displayIndex + 1}</b></td>
                 
                 <!-- Customer / Order No -->
                 <td>
                     <div class="cell-content-box order-cell-box">
-                        <input type="text" class="inline-edit-input table-order-input screen-only-input" value="${escapeHtml(order.orderNo || '')}" onchange="updateRestockFieldInline('${brand}', ${originalIndex}, 'orderNo', this.value)" title="Edit Customer / Order No">
+                        ${restockOrderInputHtml}
                         <button type="button" class="copy-btn screen-only-input" onclick="copyOrderInput(this)" title="Copy number">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -6544,6 +6616,18 @@
             if (oldValue === newValue) return;
 
             if (field === 'orderNo') {
+                if (!isAdminLoggedIn()) {
+                    showToast("🔒 শুধুমাত্র Admin অর্ডার নাম্বার পরিবর্তন বা রিমুভ করতে পারবেন!", "warning");
+                    renderRestockTable(brand);
+                    return;
+                }
+
+                if (!newValue || newValue.trim() === '') {
+                    showToast("⚠️ অর্ডার নাম্বার মুছে ফেলা বা সম্পূর্ণ খালি করা যাবে না!", "error");
+                    renderRestockTable(brand);
+                    return;
+                }
+
                 let currentId = orders[originalIndex].id;
                 let dup = findDuplicateInList(orders, newValue, currentId);
                 if (dup) {
