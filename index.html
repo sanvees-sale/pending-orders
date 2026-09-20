@@ -3981,6 +3981,7 @@
                 <button class="chip" onclick="setGlobalBrandFilter('sanvees-restock')"
                     id="globalBrandSanveesRestock">Sanvee's Restock</button>
                 <button class="chip" onclick="setGlobalBrandFilter('forever')" id="globalBrandForever">Forever Tony</button>
+                <button class="chip" onclick="setGlobalBrandFilter('exclusive')" id="globalBrandExclusive">Sanvee's Exclusive</button>
 
                 <span
                     style="margin-left: 10px; font-size:12px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Status:</span>
@@ -4453,7 +4454,8 @@
         let currentFilters = {
             tony: { status: 'all', search: '' },
             sanvees: { status: 'all', search: '' },
-            forever: { status: 'all', search: '' }
+            forever: { status: 'all', search: '' },
+            exclusive: { status: 'all', search: '' }
         };
         let currentRestockFilters = {
             tony: { status: 'all', search: '' },
@@ -4463,7 +4465,8 @@
         let cachedOrders = {
             tony: [],
             sanvees: [],
-            forever: []
+            forever: [],
+            exclusive: []
         };
         let cachedRestockOrders = {
             tony: [],
@@ -4967,6 +4970,8 @@
                 renderFilteredTable('sanvees');
             } else if (activeTab === 'forever') {
                 renderFilteredTable('forever');
+            } else if (activeTab === 'exclusive') {
+                renderFilteredTable('exclusive');
             } else if (activeTab === 'tony-restock') {
                 renderRestockTable('tony');
             } else if (activeTab === 'sanvees-restock') {
@@ -5384,6 +5389,7 @@
             'tony': true,
             'sanvees': true,
             'forever': true,
+            'exclusive': true,
             'tony_restock': true,
             'sanvees_restock': true
         };
@@ -5507,6 +5513,7 @@
             await checkAndCarryForwardPendingOrders('tony', todayStr);
             await checkAndCarryForwardPendingOrders('sanvees', todayStr);
             await checkAndCarryForwardPendingOrders('forever', todayStr);
+            await checkAndCarryForwardPendingOrders('exclusive', todayStr);
 
             // Auto carry forward restock waiting orders
             await checkAndCarryForwardRestockOrders('tony', todayStr);
@@ -5515,6 +5522,7 @@
             await loadOrders('tony');
             await loadOrders('sanvees');
             await loadOrders('forever');
+            await loadOrders('exclusive');
             await loadRestockOrders('tony');
             await loadRestockOrders('sanvees');
 
@@ -5554,6 +5562,7 @@
                 'tony': true,
                 'sanvees': true,
                 'forever': true,
+                'exclusive': true,
                 'tony_restock': true,
                 'sanvees_restock': true
             };
@@ -5585,6 +5594,14 @@
                 updateDashboardStats('forever', cachedOrders['forever']);
                 renderFilteredTable('forever');
                 handleRemoteLiveUpdate('forever', false, (orders || []).length);
+            });
+
+            // 3b. Live Sync for Sanvee's Exclusive Pendings
+            window.fbListenOrders('exclusive', selectedDate, (orders) => {
+                cachedOrders['exclusive'] = orders || [];
+                updateDashboardStats('exclusive', cachedOrders['exclusive']);
+                renderFilteredTable('exclusive');
+                handleRemoteLiveUpdate('exclusive', false, (orders || []).length);
             });
 
             // 4. Live Sync for Tony Restock
@@ -5664,7 +5681,8 @@
                 'tony-restock': { btnIndex: 2, contentId: 'tab-tony-restock' },
                 'sanvees': { btnIndex: 3, contentId: 'tab-sanvees' },
                 'sanvees-restock': { btnIndex: 4, contentId: 'tab-sanvees-restock' },
-                'forever': { btnIndex: 5, contentId: 'tab-forever' }
+                'forever': { btnIndex: 5, contentId: 'tab-forever' },
+                'exclusive': { btnIndex: 6, contentId: 'tab-exclusive' }
             };
 
             const target = tabMap[tabName];
@@ -5683,6 +5701,9 @@
             } else if (tabName === 'forever') {
                 await checkAndCarryForwardPendingOrders('forever', selDate);
                 renderFilteredTable('forever');
+            } else if (tabName === 'exclusive') {
+                await checkAndCarryForwardPendingOrders('exclusive', selDate);
+                renderFilteredTable('exclusive');
             } else if (tabName === 'tony-restock') {
                 await checkAndCarryForwardRestockOrders('tony', selDate);
                 renderRestockTable('tony');
@@ -5697,12 +5718,14 @@
             await checkAndCarryForwardPendingOrders('tony', selectedDate);
             await checkAndCarryForwardPendingOrders('sanvees', selectedDate);
             await checkAndCarryForwardPendingOrders('forever', selectedDate);
+            await checkAndCarryForwardPendingOrders('exclusive', selectedDate);
             await checkAndCarryForwardRestockOrders('tony', selectedDate);
             await checkAndCarryForwardRestockOrders('sanvees', selectedDate);
 
             await loadOrders('tony');
             await loadOrders('sanvees');
             await loadOrders('forever');
+            await loadOrders('exclusive');
             await loadRestockOrders('tony');
             await loadRestockOrders('sanvees');
 
@@ -5957,7 +5980,7 @@
             document.getElementById(type + 'ChipCancelled').innerText = cancelledCount;
 
             // Print Header Metrics
-            let capType = type === 'tony' ? 'Tony' : (type === 'forever' ? 'Forever' : 'Sanvees');
+            let capType = type === 'tony' ? 'Tony' : (type === 'forever' ? 'Forever' : (type === 'exclusive' ? 'Exclusive' : 'Sanvees'));
             let printTotalEl = document.getElementById(`print${capType}TotalCount`);
             let printPendingCountEl = document.getElementById(`print${capType}PendingCount`);
             let printPendingAmtEl = document.getElementById(`print${capType}PendingAmt`);
@@ -6990,7 +7013,7 @@
 
         function setGlobalBrandFilter(brand) {
             globalBrandFilter = brand;
-            const brands = ['all', 'tony', 'tony-restock', 'sanvees', 'sanvees-restock', 'forever'];
+            const brands = ['all', 'tony', 'tony-restock', 'sanvees', 'sanvees-restock', 'forever', 'exclusive'];
             brands.forEach(b => {
                 const btn = document.getElementById('globalBrand' + b.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''));
                 if (btn) {
@@ -7032,7 +7055,7 @@
             let results = [];
 
             // 1. Scan Standard Orders
-            for (let brandKey of ['tony', 'sanvees', 'forever']) {
+            for (let brandKey of ['tony', 'sanvees', 'forever', 'exclusive']) {
                 if (globalBrandFilter !== 'all' && globalBrandFilter !== brandKey) continue;
                 let brandObj = allOrders[brandKey] || {};
                 for (let dateStr of Object.keys(brandObj).sort().reverse()) {
@@ -7102,6 +7125,7 @@
                 if (r.type === 'order') {
                     if (r.brand === 'tony') { brandBadge = `<span class="tag-badge tag-tony">Tony Pendings</span>`; tabTarget = 'tony'; }
                     else if (r.brand === 'forever') { brandBadge = `<span class="tag-badge tag-forever" style="background:#e0e7ff; color:#4338ca; border:1px solid #c7d2fe;">Forever Tony</span>`; tabTarget = 'forever'; }
+                    else if (r.brand === 'exclusive') { brandBadge = `<span class="tag-badge tag-exclusive">Sanvee's Exclusive</span>`; tabTarget = 'exclusive'; }
                     else { brandBadge = `<span class="tag-badge tag-sanvees">Sanvee's</span>`; tabTarget = 'sanvees'; }
                 } else {
                     if (r.brand === 'tony') { brandBadge = `<span class="tag-badge tag-restock">Tony Restock</span>`; tabTarget = 'tony-restock'; }
@@ -7235,8 +7259,8 @@
             csvContent += "Category,Brand,Date,SL,Customer / Order No,Product Code / Note,Amount (BDT),Status\n";
 
             // Standard Orders
-            for (let brand of ['tony', 'sanvees', 'forever']) {
-                let brandName = brand === 'tony' ? "Sanvee's by Tony" : (brand === 'forever' ? "Forever Tony" : "Sanvee's");
+            for (let brand of ['tony', 'sanvees', 'forever', 'exclusive']) {
+                let brandName = brand === 'tony' ? "Sanvee's by Tony" : (brand === 'forever' ? "Forever Tony" : (brand === 'exclusive' ? "Sanvee's Exclusive" : "Sanvee's"));
                 let brandObj = (fullData.orders && fullData.orders[brand]) || {};
                 for (let dateStr of Object.keys(brandObj).sort()) {
                     let items = brandObj[dateStr] || [];
@@ -7281,7 +7305,7 @@
             let selectedDate = await getActiveDate();
             let restoredCount = 0;
 
-            for (let brand of ['tony', 'sanvees', 'forever']) {
+            for (let brand of ['tony', 'sanvees', 'forever', 'exclusive']) {
                 let key = `sanvees_local_orders_${brand}_${selectedDate}`;
                 let raw = localStorage.getItem(key);
                 if (raw) {
@@ -7314,6 +7338,7 @@
                 await loadOrders('tony');
                 await loadOrders('sanvees');
                 await loadOrders('forever');
+                await loadOrders('exclusive');
                 await loadRestockOrders('tony');
                 await loadRestockOrders('sanvees');
                 closeBackupModal();
@@ -7354,7 +7379,7 @@
             let keys = Object.keys(trash).reverse();
             keys.forEach(k => {
                 let item = trash[k];
-                let brandLabel = item.isRestock ? `${item.brand === 'tony' ? "Tony Restock" : "Sanvee's Restock"}` : `${item.brand === 'tony' ? "Tony Pendings" : (item.brand === 'forever' ? "Forever Tony" : "Sanvee's")}`;
+                let brandLabel = item.isRestock ? `${item.brand === 'tony' ? "Tony Restock" : "Sanvee's Restock"}` : `${item.brand === 'tony' ? "Tony Pendings" : (item.brand === 'forever' ? "Forever Tony" : (item.brand === 'exclusive' ? "Sanvee's Exclusive" : "Sanvee's"))}`;
                 let desc = item.isRestock ? `[${item.productName || ''}] ${item.orderReason || ''}` : (item.orderReason || '');
                 let amt = (item.amount || 0).toLocaleString();
 
@@ -7457,7 +7482,7 @@
         async function exportToCSV(type) {
             let orders = cachedOrders[type] || [];
             let selectedDate = await getActiveDate();
-            let brandName = type === 'tony' ? "Sanvee's by Tony" : (type === 'forever' ? "Forever Tony" : "Sanvee's");
+            let brandName = type === 'tony' ? "Sanvee's by Tony" : (type === 'forever' ? "Forever Tony" : (type === 'exclusive' ? "Sanvee's Exclusive" : "Sanvee's"));
 
             if (orders.length === 0) {
                 showToast("No orders to export!", "error");
@@ -7545,7 +7570,7 @@
 
         function preparePrint(type) {
             let selectedDate = document.getElementById('checkDateInput').value;
-            let cap = type === 'tony' ? 'Tony' : (type === 'forever' ? 'Forever' : 'Sanvees');
+            let cap = type === 'tony' ? 'Tony' : (type === 'forever' ? 'Forever' : (type === 'exclusive' ? 'Exclusive' : 'Sanvees'));
             let dateEl = document.getElementById(`printDocDate${cap}`);
             let timestampEl = document.getElementById(`printFooterTimestamp${cap}`);
 
